@@ -1,0 +1,38 @@
+[
+    {
+        "name": "crop",
+        "components": [
+            {
+                "component": ["Name", {"name": "crop", "description": "a wonderful crop full of plants"}]
+            },
+            {
+                "component": ["Crop"]
+            },
+            {
+                "component": ["View", {"type": "ViewCrop", "mapOnly": false}]
+            }
+        ],
+        "behaviours": [
+            "Cultivable"
+        ]
+    },
+    {
+        "name": "plant_bunch",
+        "extends": "item_stackable",
+        "components": [
+            {
+                "override": "replace",
+                "flyweight": true,
+                "component": ["ItemDecl", {"category": "plant", "type": "bunch", "price": 50}]
+            },
+            {
+                "override": "replace",
+                "component": ["Name", {"name": "plant bunch", "description": "a bunch of plants"}]
+            },
+            {
+                "override": "replace",
+                "component": ["View", {"sprite": "bunch"}]
+            }
+        ]
+    }
+]

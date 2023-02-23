@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7337d9e205279cc4685b077a3fb7590f, type: 3}
+  m_Name: Border
+  m_EditorClassIdentifier: 
+  color: {r: 1, g: 1, b: 1, a: 1}
+  tileHorizontalEnd: {fileID: -588285801, guid: 46e48e04684941d42b2cb19e490d0471, type: 3}
+  tileVerticalEnd: {fileID: 1865328538, guid: 46e48e04684941d42b2cb19e490d0471, type: 3}
+  tileInternalCorner: {fileID: -1732479002, guid: 46e48e04684941d42b2cb19e490d0471, type: 3}
+  tileExternalCorner: {fileID: -1311520717, guid: 46e48e04684941d42b2cb19e490d0471, type: 3}
+  tileVertical: {fileID: 1454077491, guid: 46e48e04684941d42b2cb19e490d0471, type: 3}
+  tileHorizontal: {fileID: -1847147368, guid: 46e48e04684941d42b2cb19e490d0471, type: 3}
+  tileDebug: {fileID: 421209820, guid: 46e48e04684941d42b2cb19e490d0471, type: 3}
+  debug: 1

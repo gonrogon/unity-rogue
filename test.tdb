@@ -1,0 +1,340 @@
+[
+  {
+    "name": "item",
+    "extends": "",
+    "components": [
+      {
+        "flyweight": true,
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "ItemType",
+          {
+            "category": "item",
+            "type": "item"
+          }
+        ]
+      },
+      {
+        "flyweight": true,
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "Stackable",
+          {
+            "size": 100
+          }
+        ]
+      },
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "Name",
+          {
+            "name": "generic item",
+            "description": "a generic item with no description"
+          }
+        ]
+      },
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "Location",
+          {
+            "position": [0,0]
+          }
+        ]
+      },
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "View",
+          {
+            "type": "ViewSimple",
+            "name": "Default",
+            "mapOnly": true
+          }
+        ]
+      }
+    ],
+    "behaviours": [
+      "Name",
+      "Pickable",
+      "Droppable"
+    ]
+  },
+  {
+    "name": "knife",
+    "extends": "item",
+    "components": [
+      {
+        "flyweight": true,
+        "override": "Replace",
+        "overwriteIndex": -1,
+        "IsOverride": true,
+        "IsReplace": true,
+        "IsRemove": false,
+        "component": [
+          "ItemType",
+          {
+            "category": "weapon/melee",
+            "type": "knife"
+          }
+        ]
+      },
+      {
+        "flyweight": true,
+        "override": "Replace",
+        "overwriteIndex": -1,
+        "IsOverride": true,
+        "IsReplace": true,
+        "IsRemove": false,
+        "component": [
+          "Stackable",
+          {
+            "size": -1
+          }
+        ]
+      },
+      {
+        "override": "Replace",
+        "overwriteIndex": -1,
+        "IsOverride": true,
+        "IsReplace": true,
+        "IsRemove": false,
+        "component": [
+          "Name",
+          {
+            "name": "knife",
+            "description": "a simple knife"
+          }
+        ]
+      },
+      {
+        "override": "Replace",
+        "overwriteIndex": -1,
+        "IsOverride": true,
+        "IsReplace": true,
+        "IsRemove": false,
+        "component": [
+          "View",
+          {
+            "type": "ViewSimple",
+            "name": "Default",
+            "sprite": "knife",
+            "mapOnly": true
+          }
+        ]
+      },
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "Damage",
+          {
+            "type": 0,
+            "max": 10,
+            "initial": 10,
+            "current": 10
+          }
+        ]
+      }
+    ],
+    "behaviours": [
+      "Weapon"
+    ]
+  },
+  {
+    "name": "plant_bunch",
+    "extends": "item",
+    "components": [
+      {
+        "flyweight": true,
+        "override": "Replace",
+        "overwriteIndex": -1,
+        "IsOverride": true,
+        "IsReplace": true,
+        "IsRemove": false,
+        "component": [
+          "ItemType",
+          {
+            "category": "plant",
+            "type": "bunch"
+          }
+        ]
+      },
+      {
+        "override": "Replace",
+        "overwriteIndex": -1,
+        "IsOverride": true,
+        "IsReplace": true,
+        "IsRemove": false,
+        "component": [
+          "Name",
+          {
+            "name": "plant bunch",
+            "description": "a bunch of plants"
+          }
+        ]
+      },
+      {
+        "override": "Replace",
+        "overwriteIndex": -1,
+        "IsOverride": true,
+        "IsReplace": true,
+        "IsRemove": false,
+        "component": [
+          "View",
+          {
+            "type": "ViewSimple",
+            "name": "Default",
+            "sprite": "bunch",
+            "mapOnly": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "scaffold",
+    "extends": "",
+    "components": [
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "Name",
+          {
+            "name": "scaffold",
+            "description": "the scaffolds of aconstruction"
+          }
+        ]
+      },
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "Location",
+          {
+            "position": [0,0]
+          }
+        ]
+      },
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "View",
+          {
+            "type": "ViewSimple",
+            "sprite": "scaffold",
+            "mapOnly": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "scaffold_terrain",
+    "extends": "scaffold",
+    "components": [
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "Terrain",
+          {
+            "biome": "default",
+            "wall": "default",
+            "floor": "default",
+            "work": 0,
+            "Job": -1,
+            "TotalWork": 100,
+            "Progress": 0,
+            "Done": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "stockpile",
+    "extends": "",
+    "components": [
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "Name",
+          {
+            "name": "stockpile",
+            "description": "stockpile to store different items"
+          }
+        ]
+      },
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "Stockpile",
+          {
+            "id": 0
+          }
+        ]
+      },
+      {
+        "override": "None",
+        "overwriteIndex": -1,
+        "IsOverride": false,
+        "IsReplace": false,
+        "IsRemove": false,
+        "component": [
+          "View",
+          {
+            "type": "ViewStockpile",
+            "mapOnly": false
+          }
+        ]
+      }
+    ]
+  }
+]

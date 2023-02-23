@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49a6c01438df34249902c97e683c80b8, type: 3}
+  m_Name: crops
+  m_EditorClassIdentifier: 
+  defaultFloor: {fileID: 0}
+  defaultWall: {fileID: 0}
+  floors:
+  - {fileID: 11400000, guid: 137c9063e178d114580106d4444fd4b5, type: 2}
+  - {fileID: 11400000, guid: b031b90e9fee1f24e8b6f4e49f3190ce, type: 2}
+  - {fileID: 11400000, guid: 7600166a1bf37dd41b0cdb0cff4a2813, type: 2}
+  - {fileID: 11400000, guid: 0c44f536c6ed668479d94fecbbc72671, type: 2}
+  - {fileID: 11400000, guid: 91b81b0d1686221449c42d51f2483628, type: 2}
+  walls: []

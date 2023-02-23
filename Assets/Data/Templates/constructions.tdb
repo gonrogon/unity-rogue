@@ -1,0 +1,25 @@
+[
+    {
+        "name": "scaffold",
+        "components": [
+            {
+                "component": ["Name", {"name": "scaffold", "description": "the scaffolds of aconstruction"}]
+            },
+            {
+                "component": ["Location"]
+            },
+            {
+                "component": ["View", {"type": "ViewSimple", "sprite": "scaffold"}]
+            }
+        ]
+    },
+    {
+        "name": "scaffold_terrain",
+        "extends": "scaffold",
+        "components": [
+            {
+                "component": ["Terrain", {"biome": "default", "wall":  "default", "floor": "default", "TotalWork": 100}]
+            }
+        ]
+    }
+]
