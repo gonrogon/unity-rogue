@@ -1,0 +1,3 @@
+[submodule "Packages/ggmathe"]
+	path = Packages/ggmathe
+	url = https://github.com/gonrogon/unity-package-ggmathe.git
