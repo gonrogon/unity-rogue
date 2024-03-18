@@ -13,6 +13,8 @@ namespace Rogue
 
         public static PathManager PathManager { get; private set; } = null;
 
+        public static Game.TimeManager TimeManager { get; private set; } = null;
+
         public static Game.Scheduler Scheduler { get; private set; } = null;
 
         public static Game.CategoryStore Categories { get; private set; } = null;
@@ -47,6 +49,11 @@ namespace Rogue
         public static void Provide(PathManager manager)
         {
             PathManager = manager;
+        }
+
+        public static void Provide(Game.TimeManager timeManager)
+        { 
+            TimeManager = timeManager;
         }
 
         public static void Provide(Game.Scheduler scheduler)

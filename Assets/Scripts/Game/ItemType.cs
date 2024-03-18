@@ -14,7 +14,7 @@ namespace Rogue.Game
         /// <summary>
         /// Value.
         /// </summary>
-        private int m_value;
+        private readonly int m_value;
 
         /// <summary>
         /// Flag indicating whether it is a valid item type or not.
@@ -29,8 +29,6 @@ namespace Rogue.Game
         {
             m_value = value;
         }
-
-        #region @@@ EQUATABLE @@@
 
         public override int GetHashCode() => m_value.GetHashCode();
 
@@ -50,6 +48,14 @@ namespace Rogue.Game
 
         public static bool operator!=(ItemType lhs, ItemType rhs) => lhs.m_value != rhs.m_value;
 
-        #endregion
+        public override string ToString()
+        {
+            if (Context.ItemTypes != null)
+            {
+                return Context.ItemTypes.GetName(this);
+            }
+
+            return "unregisterd_type";
+        }
     }
 }

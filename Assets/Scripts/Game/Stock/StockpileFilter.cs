@@ -31,9 +31,9 @@ namespace Rogue.Game.Stock
 
         public bool Accept(Ident eid)
         {
-            var type = Context.World.Find(eid).FindFirstAny<Comp.ItemDecl>();
+            var decl = Context.World.Find(eid).FindFirstAny<Comp.ItemDecl>();
             // Only items can be store in the stockpiles.
-            if (type == null)
+            if (decl == null)
             {
                 return false;
             }
@@ -44,7 +44,7 @@ namespace Rogue.Game.Stock
 
                 for (int i = 0; i < m_allowed.Count && !allowed; i++)
                 {
-                    if (m_allowed[i].Contains(type.category))
+                    if (m_allowed[i].Contains(decl.category))
                     {
                         allowed = true;
                     }

@@ -6,7 +6,7 @@ namespace Rogue.Game
 {
     public class Inventory
     {
-        private readonly IdentBag m_items = new ();
+        private readonly IdentList m_items = new ();
 
         public int Count => m_items.Count;
 

@@ -1,21 +1,48 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Rogue.Core
 {
     /// <summary>
-    /// Define an identifier.
+    /// Defines an identifier.
     /// </summary>
-    public struct Ident
+    public struct Ident : IEquatable<Ident>
     {
-        const int ValBits = 24; // Number of bits used in the value area.
-        const int GenBits =  8; // Number of bits used in the generation area.
+        /// <summary>
+        /// Number of bits used in the value area.
+        /// </summary>
+        public const int ValBits = 24;
 
-        public const uint ValMask = 0xffffff00; // Mask for the value area.
-        public const uint GenMask = 0x000000ff; // Mask for the generation area.
-        public const uint MaxVal  = 0x00ffffff; // Maximum value for the value area.
-        public const uint MaxGen  = 0x000000ff; // Maximum value for the generation area.
+        /// <summary>
+        /// Number of bits used in the generation area.
+        /// </summary>
+        public const int GenBits =  8;
 
-        public static Ident Zero = new Ident();
+        /// <summary>
+        /// Mask for the value area.
+        /// </summary>
+        public const uint ValMask = 0xffffff00;
+
+        /// <summary>
+        /// Mask for the generation area.
+        /// </summary>
+        public const uint GenMask = 0x000000ff;
+
+        /// <summary>
+        /// Maximum value for the value area.
+        /// </summary>
+        public const uint MaxVal  = 0x00ffffff;
+
+        /// <summary>
+        /// Maximum value for the generation area.
+        /// </summary>
+        public const uint MaxGen  = 0x000000ff;
+
+        /// <summary>
+        /// Empty identifier.
+        /// </summary>
+        public static readonly Ident Zero = new ();
 
         /// <summary>
         /// Internal identifier (generation + value).
@@ -53,10 +80,7 @@ namespace Rogue.Core
         /// Create an identifier with value and generation zero.
         /// </summary>
         /// <param name="value">Value.</param>
-        public Ident(uint value)
-            :
-            this(value, 0)
-        {}
+        public Ident(uint value) : this(value, 0) {}
 
         /// <summary>
         /// Constructor.
@@ -75,19 +99,26 @@ namespace Rogue.Core
         /// Copy constructor.
         /// </summary>
         /// <param name="ident">Identifier to copy.</param>
-        public Ident(Ident ident)
-        { 
-            m_id = ident.m_id;
+        public Ident(Ident ident) => m_id = ident.m_id;
+
+        /// <summary>
+        /// Creates an identifier from a raw value.
+        /// </summary>
+        /// <param name="raw">Raw value.</param>
+        /// <returns>Identifier.</returns>
+        public static Ident CreateFromRaw(uint raw)
+        {
+            Ident id;
+            id.m_id = raw;
+
+            return id;
         }
 
         /// <summary>
         /// Generates a new identifier with the same generation and the next value.
         /// </summary>
         /// <returns>Identifier.</returns>
-        public Ident NextValue()
-        {
-            return new Ident(Value + 1, Generation);
-        }
+        public Ident NextValue() => new (Value + 1, Generation);
 
         /// <summary>
         /// Generates a new identifier with the next generation and the same value.
@@ -95,10 +126,7 @@ namespace Rogue.Core
         /// Note when the generation exceeds its maximum value its restarts from zero.
         /// </summary>
         /// <returns>Identifier.</returns>
-        public Ident NextGeneration()
-        {
-            return new Ident(Value, Generation >= MaxGen ? 0 : Generation + 1);
-        }
+        public Ident NextGeneration() => new (Value, Generation >= MaxGen ? 0 : Generation + 1);
 
         /// <summary>
         /// Generates a new identifier with the next generation and the same value.
@@ -107,29 +135,36 @@ namespace Rogue.Core
         /// its restarts from one.
         /// </summary>
         /// <returns>Identifier.</returns>
-        public Ident NextGenerationSkipZero()
-        {
-            return new Ident(Value, Generation >= MaxGen ? 1 : Generation + 1);
-        }
-
-        /// <summary>
-        /// Checks if two identifiers are equal.
-        /// </summary>
-        /// <param name="obj">Object.</param>
-        /// <returns>Result of the comparison.</returns>
-        public override bool Equals(object obj)
-        {
-            return obj is Ident ident && m_id == ident.m_id;
-        }
+        public Ident NextGenerationSkipZero() => new (Value, Generation >= MaxGen ? 1 : Generation + 1);
 
         /// <summary>
         /// Get the hash code.
         /// </summary>
         /// <returns>Hash code.</returns>
-        public override int GetHashCode()
+        public override int GetHashCode() => -1269635712 + m_id.GetHashCode();
+
+        /// <summary>
+        /// Checks if two identifiers are equal.
+        /// </summary>
+        /// <param name="obj">Object.</param>
+        /// <returns>True if they are equal; otherwise, false.</returns>
+        public override bool Equals(object obj)
         {
-            return -1269635712 + m_id.GetHashCode();
+            if (obj is not Ident)
+            {
+                return false;
+            }
+
+            return Equals((Ident)obj);
         }
+
+        /// <summary>
+        /// Checks if two identifiers are equal.
+        /// </summary>
+        /// <param name="ident">Identifier.</param>
+        /// <returns>True if they are equal; otherwise, false.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Equals(Ident ident) => m_id == ident.m_id;
 
         /// <summary>
         /// Checks if two identifiers are equal.
@@ -137,10 +172,8 @@ namespace Rogue.Core
         /// <param name="lhs">Identifier.</param>
         /// <param name="rhs">Identifier.</param>
         /// <returns>Result of the comparison.</returns>
-        public static bool operator==(Ident lhs, Ident rhs)
-        {
-            return lhs.m_id == rhs.m_id;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator==(Ident lhs, Ident rhs) => lhs.m_id == rhs.m_id;
 
         /// <summary>
         /// Checks if two identifiers are not equal.
@@ -148,10 +181,8 @@ namespace Rogue.Core
         /// <param name="lhs">Identifier.</param>
         /// <param name="rhs">Identifier.</param>
         /// <returns>Result of the comparison.</returns>
-        public static bool operator!=(Ident lhs, Ident rhs)
-        {
-            return lhs.m_id != rhs.m_id;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator!=(Ident lhs, Ident rhs) => lhs.m_id != rhs.m_id;
 
         /// <summary>
         /// Checks if a identifier is less than or equal to another.
@@ -159,10 +190,8 @@ namespace Rogue.Core
         /// <param name="lhs">Identifier.</param>
         /// <param name="rhs">Identifier.</param>
         /// <returns>Result of the comparison.</returns>
-        public static bool operator<=(Ident lhs, Ident rhs)
-        {
-            return lhs.m_id <= rhs.m_id;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator<=(Ident lhs, Ident rhs) => lhs.m_id <= rhs.m_id;
 
         /// <summary>
         /// Checks if a identifier is greater than or equal to another.
@@ -170,10 +199,8 @@ namespace Rogue.Core
         /// <param name="lhs">Identifier.</param>
         /// <param name="rhs">Identifier.</param>
         /// <returns>Result of the comparison.</returns>
-        public static bool operator>=(Ident lhs, Ident rhs)
-        {
-            return lhs.m_id >= rhs.m_id;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator>=(Ident lhs, Ident rhs) => lhs.m_id >= rhs.m_id;
 
         /// <summary>
         /// Checks if a identifier is less than another.
@@ -181,10 +208,8 @@ namespace Rogue.Core
         /// <param name="lhs">Identifier.</param>
         /// <param name="rhs">Identifier.</param>
         /// <returns>Result of the comparison.</returns>
-        public static bool operator<(Ident lhs, Ident rhs)
-        {
-            return lhs.m_id < rhs.m_id;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator<(Ident lhs, Ident rhs) => lhs.m_id < rhs.m_id;
 
         /// <summary>
         /// Checks if a identifier is greater than another.
@@ -192,9 +217,13 @@ namespace Rogue.Core
         /// <param name="lhs">Identifier.</param>
         /// <param name="rhs">Identifier.</param>
         /// <returns>Result of the comparison.</returns>
-        public static bool operator>(Ident lhs, Ident rhs)
-        {
-            return lhs.m_id > rhs.m_id;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator>(Ident lhs, Ident rhs) => lhs.m_id > rhs.m_id;
+
+        /// <summary>
+        /// Get a nicely formatted string for the identifier.
+        /// </summary>
+        /// <returns>String.</returns>
+        public override string ToString() => $"({Generation}, {Value})";
     }
 }

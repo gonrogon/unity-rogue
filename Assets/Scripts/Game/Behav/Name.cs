@@ -41,7 +41,7 @@ namespace Rogue.Game.Behav
                     {
                         if (mDecl != null)
                         {
-                            msg.name        = Context.ItemTypes.GenerateName(mDecl.type);
+                            msg.name        = Context.ItemTypes.GetName(mDecl.type);
                             msg.description = null;
                         }
                     }

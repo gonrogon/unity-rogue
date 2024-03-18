@@ -375,8 +375,8 @@ namespace Rogue.Game
             BodyMember lHand = body.Find(BodyMember.Type.Hand, "L");
             BodyMember rHand = body.Find(BodyMember.Type.Hand, "R");
 
-            left  = lHand != null ? lHand.hold : Ident.Zero;
-            right = rHand != null ? rHand.hold : Ident.Zero;
+            left  = lHand != null ? lHand.wield : Ident.Zero;
+            right = rHand != null ? rHand.wield : Ident.Zero;
 
             return !left.IsZero || !right.IsZero;
         }

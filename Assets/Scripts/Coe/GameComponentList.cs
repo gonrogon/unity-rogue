@@ -6,45 +6,36 @@ using UnityEngine;
 namespace Rogue.Coe
 {
     /// <summary>
-    /// Define a type for a list of components.
+    /// Defines a list of components.
     /// </summary>
     public class GameComponentList : IEnumerable<IGameComponent>
     {
         /// <summary>
         /// List of components.
         /// </summary>
-        private List<IGameComponent> m_list = new List<IGameComponent>();
+        private readonly List<IGameComponent> m_list = new ();
 
         /// <summary>
-        /// Get the enumerator.
+        /// Gets an enumerator.
         /// </summary>
         /// <returns>Enumerator.</returns>
-        public IEnumerator<IGameComponent> GetEnumerator()
-        {
-            return m_list.GetEnumerator();
-        }
+        public IEnumerator<IGameComponent> GetEnumerator() => m_list.GetEnumerator();
 
         /// <summary>
-        /// Get the enumerator.
+        /// Gets an enumerator.
         /// </summary>
         /// <returns>Enumerator.</returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return m_list.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => m_list.GetEnumerator();
 
         /// <summary>
-        /// Check if the list contains a type of component.
+        /// Checks if the list contains a type of component.
         /// </summary>
         /// <typeparam name="T">Type of component.</typeparam>
         /// <returns>True on success; otherwise, false.</returns>
-        public bool Contains<T>() where T : IGameComponent
-        {
-            return ImplFindFirstIndex(typeof(T)) >= 0;
-        }
+        public bool Contains<T>() where T : IGameComponent => ImplFindFirstIndex(typeof(T)) >= 0;
 
         /// <summary>
-        /// Find the nth ocurrence of a component of a type.
+        /// Finds the nth ocurrence of a component of a type.
         /// </summary>
         /// <typeparam name="T">Type of component.</typeparam>
         /// <param name="nth">Number.</param>
@@ -57,21 +48,18 @@ namespace Rogue.Coe
                 return (T)m_list[i];
             }
 
-            return default(T);
+            return default;
         }
 
         /// <summary>
-        /// Find the first component of a type.
+        /// Finds the first component of a type.
         /// </summary>
         /// <typeparam name="T">Type of component.</typeparam>
         /// <returns>Component if it exists; otherwise, default.</returns>
-        public T FindFirst<T>() where T : IGameComponent
-        {
-            return Find<T>(0);
-        }
+        public T FindFirst<T>() where T : IGameComponent => Find<T>(0);
 
         /// <summary>
-        /// Find the last component of a type.
+        /// Finds the last component of a type.
         /// </summary>
         /// <typeparam name="T">Type of component.</typeparam>
         /// <returns>Component if it exists; otherwise, default.</returns>
@@ -83,11 +71,11 @@ namespace Rogue.Coe
                 return (T)m_list[i];
             }
 
-            return default(T);
+            return default;
         }
 
         /// <summary>
-        /// Find the nth ocurrence of a component of a type.
+        /// Finds the nth ocurrence of a component of a type.
         /// </summary>
         /// <param name="type">Type of component.</param>
         /// <param name="nth">Number.</param>
@@ -108,14 +96,14 @@ namespace Rogue.Coe
         }
 
         /// <summary>
-        /// Find the first component of a type.
+        /// Finds the first component of a type.
         /// </summary>
         /// <param name="type">Type of component.</param>
         /// <returns>Index of the component if it exits; otherwise, less than zero.</returns>
         private int ImplFindFirstIndex(Type type) => ImplFindIndex(type, 0);
 
         /// <summary>
-        /// Find the last component of a type.
+        /// Finds the last component of a type.
         /// </summary>
         /// <param name="type">Type of component.</param>
         /// <returns>Index of the component if it exits; otherwise, less than zero.</returns>
@@ -133,19 +121,11 @@ namespace Rogue.Coe
         }
 
         /// <summary>
-        /// Add a new component to the list.
-        /// </summary>
-        /// <typeparam name="T">Type of component to add.</typeparam>
-        public void Add<T>() where T : IGameComponent, new()
-        {
-            Add(new T());
-        }
-
-        /// <summary>
-        /// Add a component to the list.
+        /// Adds a component to the list.
         /// </summary>
         /// <param name="component">Component to add.</param>
-        public void Add(IGameComponent component)
+        /// <returns>Reference to the component on success; otherwise, null.</returns>
+        public IGameComponent Add(IGameComponent component)
         {
             IGameComponent prev = null;
             IGameComponent cnew = component;
@@ -163,42 +143,49 @@ namespace Rogue.Coe
                 }
             #endif
 
-            if (prev != null)
-            {
-                prev.LinkNext(cnew);
-            }
-
-            cnew.LinkPrev(prev);
-            cnew.LinkNext(null);
+            prev?.LinkNext(cnew);
+            cnew .LinkPrev(prev);
+            cnew .LinkNext(null);
 
             m_list.Add(cnew);
+
+            return component;
         }
 
         /// <summary>
-        /// Remove the nth ocurrence of a component.
+        /// Removes the nth ocurrence of a component.
         /// </summary>
-        /// <typeparam name="T">Type of component.</typeparam>
+        /// <typeparam name="T">Type of component to remove.</typeparam>
         /// <param name="nth">Number.</param>
-        public void Remove<T>(int nth)
+        /// <returns>Reference to the removed component or null if no component was removed.</returns>
+        public IGameComponent Remove<T>(int nth)
         {
-            int i  = ImplFindIndex(typeof(T), nth);
-            if (i >= 0)
+            int i = ImplFindIndex(typeof(T), nth);
+            if (i < 0)
             {
-                ImplRemove(i);
+                return null;
             }
+
+            return ImplRemove(i);
         }
 
         /// <summary>
-        /// Remove all components of a type.
+        /// Removes all components of a type.
         /// </summary>
-        /// <typeparam name="T">Type of component.</typeparam>
-        public void RemoveAll<T>()
+        /// <typeparam name="T">Type of component to remove.</typeparam>
+        /// <param name="onRemoved">Action to invoke when a component is removed.</param>
+        /// <returns>True if at least one component was removed; otherwise, false.</returns>
+        public void RemoveAll<T>(Action<IGameComponent> onRemoved)
         {
             for (int i = 0; i < m_list.Count;)
             {
                 if (m_list[i].GetType() == typeof(T))
                 {
-                    ImplRemove(i);
+                    IGameComponent c = ImplRemove(i);
+                    if (c != null)
+                    {
+                        onRemoved?.Invoke(c);
+                    }
                 }
                 else
                 {
@@ -208,17 +195,19 @@ namespace Rogue.Coe
         }
 
         /// <summary>
-        /// Implement the removal of a component.
+        /// Implements the removal of a component.
         /// </summary>
         /// <param name="index">Index of the component to remove.</param>
-        public void ImplRemove(int index)
+        /// <returns>Reference to the removed component or null if no component was removed.</returns>
+        public IGameComponent ImplRemove(int index)
         {
-            IGameComponent component = m_list[index];
+            IGameComponent c = m_list[index];
 
-            if (component.Prev != null) { component.Prev.LinkNext(component.Next); }
-            if (component.Next != null) { component.Next.LinkPrev(component.Prev); }
+            c.Prev?.LinkNext(c.Next);
+            c.Next?.LinkPrev(c.Prev);
 
             m_list.RemoveAt(index);
+            return c;
         }
     }
 }

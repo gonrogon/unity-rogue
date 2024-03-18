@@ -3,7 +3,7 @@ using Rogue.Coe;
 
 namespace Rogue.Views
 {
-    public abstract class ViewBase : MonoBehaviour, Coe.IGameView
+    public abstract class ViewBase : MonoBehaviour, IGameView
     {
         /// <summary>
         /// View manager.

@@ -1,5 +1,7 @@
 [
     ["item",  "item"],
     ["knife", "weapon/melee"],
+    ["light bullets", "ammo"],
+    ["heavy bullets", "ammo"],
     ["bunch", "crop/plant"]
 ]

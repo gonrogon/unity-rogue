@@ -6,21 +6,25 @@ using Newtonsoft.Json.Linq;
 namespace Rogue.Coe.Serialization
 {
     /// <summary>
-    /// Defines a converter for the list of components of a template.
+    /// Defines a converter for a list of template components.
     /// </summary>
     public class TemplateComponentListConverter : JsonConverter<List<TemplateComponent>>
     {
         /// <summary>
         /// Template database.
         /// </summary>
-        private readonly TemplateDatabase m_database;
+        private TemplateDatabase m_database;
 
         /// <summary>
         /// Template that is being converted.
         /// </summary>
-        private readonly Template m_template;
+        private Template m_template;
 
-        public TemplateComponentListConverter(TemplateDatabase database, Template template)
+        public TemplateComponentListConverter() {}
+
+        public TemplateComponentListConverter(TemplateDatabase database, Template template) => Reset(database, template);
+
+        public void Reset(TemplateDatabase database, Template template)
         {
             m_database = database;
             m_template = template;
@@ -31,6 +35,10 @@ namespace Rogue.Coe.Serialization
             var jarray =  serializer.Deserialize<JArray>(reader);
             if (jarray == null)
             {
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.LogError("Invalid JSON, array of components expected");
+                #endif
+
                 return null;
             }
             // Create a new list or use the existing one.
@@ -38,19 +46,17 @@ namespace Rogue.Coe.Serialization
             // Process each element of the array.
             foreach (JToken token in jarray)
             {
-                // List can only contains object, other elements are ignore.
-                if (token is not JObject jobj)
+                if (token.Type != JTokenType.Array)
                 {
+                    #if UNITY_2017_1_OR_NEWER
+                        UnityEngine.Debug.LogWarning("Invalid JSON, component array expected");
+                    #endif
+
                     continue;
                 }
                 // Try to convert the component. Note that the template components are converted using a custom
-                // converter, this converter returns null if the component is an overwrite because there is no need
-                // to create a new one.
-                TemplateComponent tc = serializer.Deserialize<TemplateComponent>(jobj.CreateReader());
-                if (tc != null)
-                {
-                    list.Add(tc);
-                }
+                // converter, this converter returns null because it adds the components automatically to the template.
+                serializer.Deserialize<TemplateComponent>(token.CreateReader());
             }
 
             return list;
@@ -62,7 +68,7 @@ namespace Rogue.Coe.Serialization
             {
                 for (int i = 0; i < value.Count; i++)
                 {
-                    if (value[i].Inherited)
+                    if (value[i].IsInherited)
                     {
                         continue;
                     }

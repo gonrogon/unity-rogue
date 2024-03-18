@@ -1,12 +1,11 @@
 ﻿using Rogue.Core.Collections;
 using Rogue.Core;
 
-
 namespace Rogue.Game
 {
     public class InventorySystem
     {
-        private IdentMap<Inventory> m_inventories = new IdentMap<Inventory>();
+        private readonly IdentMap<Inventory> m_inventories = new ();
 
         public Inventory Get(Ident iid)
         {

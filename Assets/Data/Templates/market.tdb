@@ -2,21 +2,13 @@
     {
         "name" : "market",
         "components": [
-            {
-                "component": ["Name", {"name": "market", "description": "market where to sell or buy items"}]
-            },
-            {
-                "component": ["Building"]
-            },
-            {
-                "component": ["Inventory"]
-            },
-            {
-                "component": ["View", {"type": "ViewMarket", "mapOnly": false}]
-            }
+            ["name", {"name": "market", "description": "market where to sell or buy items"}],
+            ["building"],
+            ["inventory"],
+            ["view", {"type": "ViewMarket", "mapOnly": false}]
         ],
         "behaviours": [
-            "Name", "Placeable", "Market"
+            "name", "placeable", "market"
         ]
     }
 ]

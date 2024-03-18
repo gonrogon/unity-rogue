@@ -6,9 +6,14 @@ namespace Rogue.Game
     public class Scheduler
     {
         /// <summary>
+        /// Total time elapsed since the start of the scheduler, in game units.
+        /// </summary>
+        public int Elapsed { get; private set; }
+
+        /// <summary>
         /// List of handlers.
         /// </summary>
-        private List<SchedulerHandler> m_handlers = new List<SchedulerHandler>();
+        private readonly List<SchedulerHandler> m_handlers = new ();
 
         /// <summary>
         /// Add a new schedulable.
@@ -40,6 +45,8 @@ namespace Rogue.Game
         /// <param name="elapsed">Time elapsed in game units.</param>
         public void Step(int elapsed)
         {
+            Elapsed += elapsed;
+
             for (int i = 0; i < m_handlers.Count;)
             {
                 var handler = m_handlers[i];

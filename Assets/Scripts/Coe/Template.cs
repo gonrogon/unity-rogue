@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Rogue.Core;
+using UnityEngine;
 
 namespace Rogue.Coe
 {
@@ -80,6 +83,31 @@ namespace Rogue.Coe
             Base = extends;
         }
 
+        /// <summary>
+        /// Removes all the components that match the conditions defined by the specific predicate.
+        /// </summary>
+        /// <param name="pred">Predicate that defines the conditions of the elements to remove.</param>
+        /// <return>The number of components removed from the template.</return>
+        public int RemoveAllComponents(Func<TemplateComponent, bool> pred)
+        {
+            int count = 0;
+
+            for (int i = 0; i < m_components.Count;)
+            {
+                if (pred(m_components[i]))
+                {
+                    ArrayUtil.RemoveAndSwap(m_components, i);
+                    count++;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            return count;
+        }
+
         #region @@@ COMPONENTS @@@
 
         /// <summary>
@@ -126,7 +154,7 @@ namespace Rogue.Coe
 
             for (int i = 0; i < m_components.Count; i++)
             {
-                if (m_components[i].IsRemove || m_components[i].Flyweight)
+                if (m_components[i].IsOverrideRemove || m_components[i].IsFlyweight)
                 {
                     continue;
                 }
@@ -143,6 +171,13 @@ namespace Rogue.Coe
         }
 
         /// <summary>
+        /// Gets a component.
+        /// </summary>
+        /// <param name="index">Index.</param>
+        /// <returns>Component.</returns>
+        public IGameComponent GetComponent(int index) => m_components[index].component;
+
+        /// <summary>
         /// Clones a component.
         /// </summary>
         /// <param name="index">Index.</param>
@@ -151,7 +186,7 @@ namespace Rogue.Coe
         {
             TemplateComponent tc = m_components[index];
 
-            if (tc.IsRemove || tc.Flyweight)
+            if (tc.IsOverrideRemove || tc.IsFlyweight)
             {
                 return null;
             }
@@ -163,7 +198,65 @@ namespace Rogue.Coe
         /// Adds a new component.
         /// </summary>
         /// <param name="component">Component to add.</param>
-        public void AddComponent(IGameComponent component) => m_components.Add(TemplateComponent.CreateNew(component));
+        public TemplateComponent AddComponent(IGameComponent component) 
+        {
+            var tc = TemplateComponent.CreateNew(component);
+            m_components.Add(tc);
+
+            return tc;
+        }
+
+        public TemplateComponent OverrideComponent(Type type, TemplateOverride @override, int overrideIndex)
+        {
+            switch (@override)
+            {
+                case TemplateOverride.Replace:
+                {
+                    int index = FindComponentIndex(type, overrideIndex < 0 ? 0 : overrideIndex);
+                    if (index < 0)
+                    {
+                        return AddComponent(null);
+                    }
+                    else
+                    {
+                        var tc = m_components[index];
+
+                        if (tc.IsInherited)
+                        {
+                            //tc.component = tc.component.Clone();
+                            tc.MarkAsOverrided();
+                            tc.ClearInherited();
+                        }
+
+                        return tc;
+                    }
+                }
+
+                case TemplateOverride.Remove:
+                {
+                    int index = FindComponentIndex(type, overrideIndex < 0 ? 0 : overrideIndex);
+                    if (index < 0)
+                    {
+                        // Nothing to do, component is not preset.
+                    }
+                    else
+                    {
+                        var tc = m_components[index];
+
+                        //tc.component = null;
+                        tc.MarkAsRemoved();
+                        tc.ClearInherited();
+                    }
+
+                    return null;
+                }
+
+                default:
+                {
+                    return AddComponent(null);
+                }
+            }
+        }
 
         /// <summary>
         /// Removes the nth component of a specific type.
@@ -188,7 +281,7 @@ namespace Rogue.Coe
         {
             for (int i = FindComponentIndex<T>(0); i >= 0; i = FindComponentIndex<T>(0))
             {
-                if (m_components[i].IsRemove || m_components[i].Flyweight)
+                if (m_components[i].IsOverrideRemove || m_components[i].IsFlyweight)
                 {
                     continue;
                 }
@@ -245,7 +338,7 @@ namespace Rogue.Coe
 
             for (int i = 0; i < m_components.Count; i++)
             {
-                if (m_components[i].IsRemove || m_components[i].Flyweight == false)
+                if (m_components[i].IsOverrideRemove || m_components[i].IsFlyweight == false)
                 {
                     continue;
                 }
@@ -265,7 +358,65 @@ namespace Rogue.Coe
         /// Adds a new component.
         /// </summary>
         /// <param name="component">Component to add.</param>
-        public void AddFlyweight(IGameComponent component) => m_components.Add(TemplateComponent.CreateFlyweight(component, false));
+        public TemplateComponent AddFlyweight(IGameComponent component)
+        {
+            var tb = TemplateComponent.CreateFlyweight(component, false);
+            m_components.Add(tb);
+
+            return tb;
+        }
+
+        public TemplateComponent OverrideFlyweight(Type type, TemplateOverride @override, int overrideIndex)
+        {
+            switch (@override)
+            {
+                case TemplateOverride.Replace:
+                {
+                    int index = FindFlyweightIndex(type, overrideIndex < 0 ? 0 : overrideIndex);
+                    if (index < 0)
+                    {
+                        return AddFlyweight(null);
+                    }
+                    else
+                    {
+                        var tc = m_components[index];
+
+                        if (tc.IsInherited)
+                        {
+                            //tc.component = tc.component.Clone();
+                            tc.MarkAsOverrided();
+                            tc.ClearInherited();
+                        }
+
+                        return tc;
+                    }
+                }
+
+                case TemplateOverride.Remove:
+                {
+                    int index = FindFlyweightIndex(type, overrideIndex < 0 ? 0 : overrideIndex);
+                    if (index < 0)
+                    {
+                        // Nothing to do, component is not preset.
+                    }
+                    else
+                    {
+                        var tc = m_components[index];
+
+                        //tc.component = null;
+                        tc.MarkAsRemoved();
+                        tc.ClearInherited();
+                    }
+
+                    return null;
+                }
+
+                default:
+                {
+                    return AddFlyweight(null);
+                }
+            }
+        }
 
         /// <summary>
         /// Removes the nth flyweight component of a specific type.
@@ -290,7 +441,7 @@ namespace Rogue.Coe
         {
             for (int i = FindComponentIndex<T>(0); i >= 0; i = FindComponentIndex<T>(0))
             {
-                if (m_components[i].IsRemove || m_components[i].Flyweight == false)
+                if (m_components[i].IsOverrideRemove || m_components[i].IsFlyweight == false)
                 {
                     continue;
                 }
@@ -308,29 +459,69 @@ namespace Rogue.Coe
         /// </summary>
         /// <param name="type">Type.</param>
         /// <returns>Index of the behavour if it exists; otherwise, less than zero.</returns>
-        public int FindBehaviourIndex(string type) => m_behaviours.FindIndex(item => item.type == type);
+        public int FindBehaviourIndex(string type) => m_behaviours.FindIndex(item => item.behaviour == type);
 
         /// <summary>
         /// Clones a behaviour.
         /// </summary>
         /// <param name="index">Index.</param>
         /// <returns>Clone of the behavour.</returns>
-        public IGameBehaviour CloneBehaviour(int index) => GameBehaviourUtil.CreateFromName(m_behaviours[index].type);
+        public IGameBehaviour CloneBehaviour(int index) => GameBehaviourUtil.CreateFromName(m_behaviours[index].behaviour);
 
         /// <summary>
         /// Adds a new behavour.
         /// </summary>
         /// <param name="type">Type.</param>
-        public void AddBehaviour(string type) 
+        public TemplateBehaviour AddBehaviour(string type) 
         {
-            if (FindBehaviourIndex(type) >= 0)
+            int index = FindBehaviourIndex(type);
+            if (index < 0)
             {
-                return;
-            }
+                var tb = TemplateBehaviour.CreateNew(type);
+                m_behaviours.Add(tb);
 
-            m_behaviours.Add(TemplateBehaviour.CreateNew(type));
+                return tb;
+            }
+            else
+            {
+                return m_behaviours[index];
+            }
         }
         
+        public TemplateBehaviour OverrideBehaviour(string type, TemplateOverride @override)
+        {
+            switch (@override)
+            {
+                case TemplateOverride.Replace:
+                {
+                    return AddBehaviour(type);
+                }
+
+                case TemplateOverride.Remove:
+                {
+                    int index = FindBehaviourIndex(type);
+                    if (index < 0)
+                    {
+                        // Nothing to do, behaviour is not preset.
+                    }
+                    else
+                    {
+                        var tb = m_behaviours[index];
+
+                        tb.behaviour = null;
+                        tb.Inherited = false;
+                    }
+
+                    return null;
+                }
+
+                default:
+                {
+                    return AddBehaviour(type);
+                }
+            }
+        }
+
         /// <summary>
         /// Removes a behaviour.
         /// </summary>
@@ -346,9 +537,29 @@ namespace Rogue.Coe
             m_behaviours.RemoveAt(i);
         }
 
-        public bool IsBehaviourInherited(int i)
+        /// <summary>
+        /// Removes all the components that match the conditions defined by the specific predicate.
+        /// </summary>
+        /// <param name="pred">Predicate that defines the conditions of the elements to remove.</param>
+        /// <return>The number of components removed from the template.</return>
+        public int RemoveAllBehaviours(Func<TemplateBehaviour, bool> pred)
         {
-            return m_behaviours[i].Inherited;
+            int count = 0;
+
+            for (int i = 0; i < m_behaviours.Count;)
+            {
+                if (pred(m_behaviours[i]))
+                {
+                    ArrayUtil.RemoveAndSwap(m_behaviours, i);
+                    count++;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            return count;
         }
 
         #endregion
@@ -431,7 +642,7 @@ namespace Rogue.Coe
         {
             for (int i = 0; i < m_components.Count; i++)
             {
-                if (m_components[i].Inherited)
+                if (m_components[i].IsInherited)
                 {
                     m_components.RemoveAt(i);
                 }
@@ -459,128 +670,35 @@ namespace Rogue.Coe
         /// <param name="template">Template to extend.</param>
         public void Extend(Template template)
         {
-            // Creates a temporal template add all the components and behaviours.
-            Template temp = new (Name);
-
-            // ### COMPONENTS ###
-
+            if (ComponentCount > 0 || BehaviourCount > 0 || m_view != null)
+            {
+                throw new InvalidOperationException($"Unable to extend template, template is not empty");
+            }
             // Add the component in the base template as inherited components.
             foreach (TemplateComponent item in template.m_components)
             {
-                if (item.Flyweight)
+                if (item.IsFlyweight)
                 {
-                    temp.m_components.Add(TemplateComponent.CreateFlyweight(item.component, true));
+                    m_components.Add(TemplateComponent.CreateFlyweight(item.component.Clone(), true));
                 }
                 else
                 {
-                    temp.m_components.Add(TemplateComponent.CreateInherited(item.component));
+                    m_components.Add(TemplateComponent.CreateInherited(item.component.Clone()));
                 }
             }
-            // Try to add the components in this template.
-            foreach (TemplateComponent item in m_components)
-            {
-                if (item.Flyweight)
-                {
-                    if (item.Override == TemplateOverride.None)
-                    {
-                        temp.m_components.Add(TemplateComponent.CreateFlyweight(item.component, false));
-                    }
-                    else
-                    {
-                        TemplateComponent overwrite;
-                        // If the component is not found in the base template it is added as a new one.
-                        int index = temp.FindFlyweightIndex(item.component.GetType(), item.OverrideIndex < 0 ? 0 : item.OverrideIndex);
-                        if (index < 0)
-                        {
-                            overwrite = TemplateComponent.CreateFlyweight(item.component, false);
-                            temp.m_components.Add(overwrite);
-                        }
-                        else
-                        {
-                            overwrite = temp.m_components[index];
-                        }
-                        // Overwrite the old component with the new one.
-                        overwrite.Inherited         = false;
-                        overwrite.Override          = item.Override;
-                        overwrite.OverrideIndex     = item.OverrideIndex;
-                        overwrite.component         = item.component;
-                    }
-                }
-                else
-                {
-                    // If the component is not an overwrite it is added as a new one.
-                    if (item.Override == TemplateOverride.None)
-                    {
-                        temp.AddComponent(item.component);
-                    }
-                    // Otherwise, find the component in the base template an overwrite it with its new values.
-                    else
-                    {
-                        TemplateComponent overwrite;
-                        // If the component is not found in the base template it is added as a new one.
-                        int index = temp.FindComponentIndex(item.component.GetType(), item.OverrideIndex < 0 ? 0 : item.OverrideIndex);
-                        if (index < 0)
-                        {
-                            overwrite = TemplateComponent.CreateNew(item.component);
-                            temp.m_components.Add(overwrite);
-                        }
-                        else
-                        {
-                            overwrite = temp.m_components[index];
-                        }
-                        // Overwrite the old component with the new one.
-                        overwrite.Inherited         = false;
-                        overwrite.Override          = item.Override;
-                        overwrite.OverrideIndex     = item.OverrideIndex;
-                        overwrite.component         = item.component;
-                    }
-                }
-            }
-
-            // ### BEHAVIOURS ###
-
             // Add the behaviours in the base template as inherited behaviours.
             foreach (TemplateBehaviour item in template.m_behaviours)
             {
-                temp.m_behaviours.Add(item.CloneAsInherited());
+                m_behaviours.Add(TemplateBehaviour.CreateInherited(item.behaviour));
             }
-            // Try to add the behaviours in this template.
-            foreach (TemplateBehaviour item in m_behaviours)
-            {
-                // If the behaviour is not found in the base template it is added as a new one.
-                int index = temp.FindBehaviourIndex(item.type);
-                if (index < 0)
-                {
-                    temp.AddBehaviour(item.type);
-                    continue;
-                }
-                // Overwrite the old behaviour with the new one.
-                TemplateBehaviour overwrite = temp.m_behaviours[index];
-                overwrite.Inherited         = false;
-                overwrite.type              = item.type;
-            }
-
-            // ### VIEW ###
-
             // View is inherited if a new view is not defined.
             if (m_view == null)
             {
                 if (template.m_view != null)
                 {
-                    temp.m_view = template.m_view.CloneAsInherited();
+                    m_view = template.m_view.CloneAsInherited();
                 }
             }
-            else
-            {
-                temp.m_view = m_view;
-            }
-
-            // ### DONE ###
-
-            // Swap components and behaviours in this template with the temporal one.
-            (temp.m_components, m_components) = (m_components, temp.m_components);
-            (temp.m_behaviours, m_behaviours) = (m_behaviours, temp.m_behaviours);
-            (temp.m_view,       m_view)       = (m_view,       temp.m_view);
         }
 
         #endregion

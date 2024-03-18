@@ -2,15 +2,9 @@
     {
         "name": "stockpile",
         "components": [
-            {
-                "component": ["Name", { "name": "stockpile", "description": "stockpile to store different items"}]
-            },
-            {
-                "component": ["Stockpile"]
-            },
-            {
-                "component": ["View", {"type": "ViewStockpile", "mapOnly": false}]
-            }
+            ["name", { "name": "stockpile", "description": "stockpile to store different items"}],
+            ["stockpile"],
+            ["view", {"type": "ViewStockpile", "mapOnly": false}]
         ]
     }
 ]

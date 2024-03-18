@@ -1,4 +1,6 @@
 ﻿using Rogue.Core;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Rogue.Game
 {
@@ -6,12 +8,38 @@ namespace Rogue.Game
     {
         public const int MaxMembers = 10;
 
-        private BodyMember[] m_members = new BodyMember[MaxMembers];
+        [JsonIgnore]
+        private Body m_template = null;
 
-        public BodyMember At(int i)
+        [JsonProperty(PropertyName = "members")]
+        private readonly BodyMember[] m_members = new BodyMember[MaxMembers];
+
+        public Body() {}
+
+        public Body(Body body)
         {
-            return m_members[i];
+            for (int i = 0; i < MaxMembers; i++)
+            {
+                if (body.m_members[i] == null)
+                {
+                    m_members[i] = null;
+                }
+                else
+                {
+                    m_members[i] = new BodyMember(body.m_members[i]);
+                }
+            }
         }
+
+        public static Body CreateFromTemplate(Body template)
+        {
+            Body body       = new Body(template);
+            body.m_template = template;
+
+            return body;
+        }
+
+        public BodyMember At(int i) => m_members[i];
 
         /// <summary>
         /// Finds the nth member.
@@ -83,11 +111,11 @@ namespace Rogue.Game
 
             foreach (var member in m_members)
             {
-                if (member != null && !member.hold.IsZero)
+                if (member != null && !member.wield.IsZero)
                 {
                     if (c == n)
                     {
-                        return member.hold;
+                        return member.wield;
                     }
 
                     c++;
@@ -104,11 +132,11 @@ namespace Rogue.Game
 
             foreach (var member in m_members)
             {
-                if (member != null && !member.hold.IsZero)
+                if (member != null && !member.wield.IsZero)
                 {
                     if (c == n)
                     {
-                        eid = member.hold;
+                        eid = member.wield;
                         return true;
                     }
 
@@ -123,7 +151,7 @@ namespace Rogue.Game
         {
             foreach (var member in m_members)
             {
-                if (member != null && member.hold == eid)
+                if (member != null && member.wield == eid)
                 {
                     return true;
                 }
@@ -136,7 +164,7 @@ namespace Rogue.Game
         {
             foreach (var member in m_members)
             {
-                if (member != null && member.AllowHold && !member.IsHolding)
+                if (member != null && member.AllowWield && !member.IsHolding)
                 {
                     return true;
                 }
@@ -149,9 +177,9 @@ namespace Rogue.Game
         {
             foreach (var member in m_members)
             {
-                if (member != null && member.AllowHold && !member.IsHolding)
+                if (member != null && member.AllowWield && !member.IsHolding)
                 {
-                    member.hold = eid;
+                    member.wield = eid;
                     return true;
                 }
             }
@@ -175,7 +203,7 @@ namespace Rogue.Game
         {
             foreach (var member in m_members)
             {
-                if (member != null && member.hold  == eid) { member.hold  = Ident.Zero; }
+                if (member != null && member.wield  == eid) { member.wield  = Ident.Zero; }
                 if (member != null && member.armor == eid) { member.armor = Ident.Zero; }
             }
         }
@@ -186,7 +214,7 @@ namespace Rogue.Game
             {
                 if (member != null)
                 {
-                    member.hold  = Ident.Zero;
+                    member.wield  = Ident.Zero;
                     member.armor = Ident.Zero;
                 }
             }

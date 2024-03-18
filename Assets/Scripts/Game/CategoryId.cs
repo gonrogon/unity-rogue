@@ -178,5 +178,24 @@ namespace Rogue.Game
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            if (this == None)
+            {
+                return "none";
+            }
+
+            if (Context.Categories != null)
+            {
+                var path = Context.Categories.GeneratePath(this);
+                if (path != null) 
+                {
+                    return path;
+                }
+            }
+
+            return "unregistered_category";
+        }
     }
 }

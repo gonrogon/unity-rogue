@@ -9,19 +9,21 @@ namespace Rogue.Coe.Serialization
     /// </summary>
     public class TemplateBehaviourConverter : JsonConverter<TemplateBehaviour>
     {
-        //public override bool CanWrite => false;
-
         /// <summary>
         /// Template database.
         /// </summary>
-        private readonly TemplateDatabase m_database;
+        private TemplateDatabase m_database;
 
         /// <summary>
         /// Template that is being converted.
         /// </summary>
-        private readonly Template m_template;
+        private Template m_template;
 
-        public TemplateBehaviourConverter(TemplateDatabase database, Template template)
+        public TemplateBehaviourConverter() => Reset(null, null);
+
+        public TemplateBehaviourConverter(TemplateDatabase database, Template template) => Reset(database, template);
+
+        public void Reset(TemplateDatabase database, Template template)
         {
             m_database = database;
             m_template = template;
@@ -29,56 +31,35 @@ namespace Rogue.Coe.Serialization
 
         public override TemplateBehaviour ReadJson(JsonReader reader, Type objectType, TemplateBehaviour existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            JToken jobj = serializer.Deserialize<JToken>(reader);
-            TemplateBehaviour behav;
-            // Flag indicating whether or not this template behaviour overwrite one inherited from the base template.
-            bool overwrite = false;
-            // Creates a new component if it is needed.
-            if (hasExistingValue)
-            {
-                behav = existingValue;
-            }
-            else
-            {
-                var type  = (string)jobj;
+            var jtoken = serializer.Deserialize<JToken>(reader);
+            TemplateBehaviour tb = null;
 
-                if (type[0] == '-')
+            if (TemplateUtil.ParseBehaviourName((string)jtoken, out string name, out var @override))
+            {
+                if (GameBehaviourUtil.TryGetBehaviour(name, out _))
                 {
-                    m_template.RemoveBehaviour(type.Substring(1));
-                    overwrite = true;
-                    behav     = null;
+                    tb = m_template.OverrideBehaviour(name, @override);
                 }
                 else
                 {
-                    int index = m_template.FindBehaviourIndex(type);
-
-                    if (index < 0)
-                    {
-                        behav = TemplateBehaviour.CreateNew(type);
-                    }
-                    else
-                    {
-                        behav           = m_template.GetBehaviourInfo(index);
-                        behav.Inherited = false;
-                        behav.type      = type;
-                        overwrite       = true;
-                    }
+                    #if UNITY_2017_1_OR_NEWER
+                        UnityEngine.Debug.LogError($"Unable to create behaviour {name} in template {m_template.Name}, behaviour type not found");
+                    #endif
                 }
             }
 
-            if (overwrite)
+            if (tb != null)
             {
-                return null;
+                // Template behaviour does not instantiate the behaviours theirself, instead the keep the name of the
+                // behaviours to instantiate when an entity is created.
             }
-            else
-            {
-                return behav;
-            }
+
+            return null;
         }
 
         public override void WriteJson(JsonWriter writer, TemplateBehaviour value, JsonSerializer serializer)
         {
-            serializer.Serialize(writer, value.type);
+            serializer.Serialize(writer, value.behaviour);
         }
     }
 }

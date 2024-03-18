@@ -11,12 +11,12 @@ namespace Rogue.Game
             //var jobj = JToken.ReadFrom(reader);
             //var name = jobj.Value<string>();
 
-            return Context.ItemTypes.Find((string)JToken.ReadFrom(reader));
+            return Context.ItemTypes.GetType((string)JToken.ReadFrom(reader));
         }
 
         public override void WriteJson(JsonWriter writer, ItemType value, JsonSerializer serializer)
         {
-            writer.WriteValue(Context.ItemTypes.GenerateName(value));
+            writer.WriteValue(Context.ItemTypes.GetName(value));
         }
     }
 }

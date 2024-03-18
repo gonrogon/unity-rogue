@@ -50,12 +50,6 @@ namespace Rogue.Coe
     /// <typeparam name="T"></typeparam>
     public abstract class GameComponent<T> : IGameComponent where T : GameComponent<T>, new()
     {
-        /// <summary>
-        /// Get the component type (serialization).
-        /// </summary>
-        //[JsonProperty(PropertyName = "class", Order = int.MinValue)]
-        //private string Class => GetType().Name;
-
         [JsonIgnore]
         public IGameComponent Prev { get; private set; } = null;
 

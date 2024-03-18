@@ -3,6 +3,7 @@
     "weapon",
     "weapon/melee",
     "weapon/range",
+	"ammo",
     "crop",
     "crop/plant"
 ]

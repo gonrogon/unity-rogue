@@ -132,15 +132,15 @@ namespace Rogue
             var lh = Context.Bodies.Get(bid).Find(Game.BodyMember.Type.Hand, "L");
             var rh = Context.Bodies.Get(bid).Find(Game.BodyMember.Type.Hand, "R");
 
-            if (lh != null && lh.hold.IsZero)
+            if (lh != null && lh.wield.IsZero)
             {
-                lh.hold = oid;
+                lh.wield = oid;
                 return;
             }
 
-            if (rh != null && rh.hold.IsZero)
+            if (rh != null && rh.wield.IsZero)
             {
-                rh.hold = oid;
+                rh.wield = oid;
                 return;
             }
         }

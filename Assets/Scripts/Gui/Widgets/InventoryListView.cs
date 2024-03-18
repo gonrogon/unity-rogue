@@ -42,9 +42,12 @@ namespace Rogue.Gui.Widgets
 
             for (int i = 0; i < inventory.Count; i++)
             {
+                
                 Ident  itemId = inventory.At(i);
                 string name   = Query.GetName(itemId).value;
                 int    stock  = 1;
+
+                Debug.Log($"Item {i}/{inventory.Count} on inventory {iid.Raw}: {name}");
 
                 AddItem(name, stock);
             }

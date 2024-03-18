@@ -6,49 +6,39 @@ using UnityEngine;
 namespace Rogue.Coe
 {
     /// <summary>
-    /// Define a type for a list of behaviours.
+    /// Defines a list of behaviours.
     /// </summary>
     public class GameBehaviourList : IEnumerable<IGameBehaviour>
     {
         /// <summary>
         /// List of behaviours.
         /// </summary>
-        private List<IGameBehaviour> m_list = new List<IGameBehaviour>();
+        private readonly List<IGameBehaviour> m_list = new ();
 
         /// <summary>
-        /// Get the enumerator.
+        /// Gets an enumerator.
         /// </summary>
         /// <returns>Enumerator.</returns>
-        public IEnumerator<IGameBehaviour> GetEnumerator()
-        {
-            return m_list.GetEnumerator();
-        }
+        public IEnumerator<IGameBehaviour> GetEnumerator() => m_list.GetEnumerator();
 
         /// <summary>
-        /// Get the enumerator.
+        /// Gets an enumerator.
         /// </summary>
         /// <returns>Enumerator.</returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return m_list.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => m_list.GetEnumerator();
 
         /// <summary>
-        /// Check if the list contains a type of behaviour.
+        /// Checks if the list contains a behaviour.
         /// </summary>
         /// <typeparam name="T">Type of behaviour.</typeparam>
         /// <returns>True on success; otherwise, false.</returns>
-        public bool Contains<T>() where T : IGameBehaviour
-        {
-            return ImplFindIndex(typeof(T)) >= 0;
-        }
+        public bool Contains<T>() where T : IGameBehaviour => ImplFindIndex(typeof(T)) >= 0;
 
         /// <summary>
-        /// Find the nth ocurrence of a behaviour of a type.
+        /// Finds a behaviour.
         /// </summary>
         /// <typeparam name="T">Type of behaviour.</typeparam>
-        /// <param name="nth">Number.</param>
-        /// <returns>Nth-behaviour if it exits; otherwise, default.</returns>
+        /// <returns>Reference to the behaviour if it exits; otherwise, default.</returns>
         public T Find<T>() where T : IGameBehaviour
         {
             int i  = ImplFindIndex(typeof(T));
@@ -57,11 +47,11 @@ namespace Rogue.Coe
                 return (T)m_list[i];
             }
 
-            return default(T);
+            return default;
         }
 
         /// <summary>
-        /// Find the nth ocurrence of a behaviour of a type.
+        /// Finds the nth ocurrence of a behaviour of a type.
         /// </summary>
         /// <param name="type">Type of behaviour.</param>
         /// <param name="nth">Number.</param>
@@ -80,35 +70,30 @@ namespace Rogue.Coe
         }
 
         /// <summary>
-        /// Add a new behaviour to the list.
+        /// Adds a behaviour to the list.
         /// </summary>
-        /// <typeparam name="T">Type of behaviour to add.</typeparam>
-        public void Add<T>() where T : IGameBehaviour, new()
-        {
-            Add(new T());
-        }
-
-        /// <summary>
-        /// Add a behaviour to the list.
-        /// </summary>
+        /// <remarks>Behaviours are ordered by priority.</remarks>
         /// <param name="behaviour">Behaviour to add.</param>
-        public void Add(IGameBehaviour behaviour)
+        /// <returns>Reference to the behaviour on success; otherwise, null.</returns>
+        public IGameBehaviour Add(IGameBehaviour behaviour)
         {
             int i  = ImplFindIndex(behaviour.GetType());
             if (i >= 0)
             {
                 Debug.LogWarning($"List already contains a behavior of type {behaviour.GetType()}");
-                return;
+                return null;
             }
 
-            ImplInsert(behaviour);
+            return ImplInsert(behaviour);
         }
 
         /// <summary>
-        /// Insert a new behavior ordered by priority.
+        /// Inserts a behavior.
         /// </summary>
+        /// <remarks>Behaviours are ordered by priority.</remarks>
         /// <param name="behavior">Behaviour to insert.</param>
-        private void ImplInsert(IGameBehaviour behavior)
+        /// <returns>Reference to the behaviour on success; otherwise, null.</returns>
+        private IGameBehaviour ImplInsert(IGameBehaviour behavior)
         {
             int found = -1;
 
@@ -125,29 +110,37 @@ namespace Rogue.Coe
                 found = m_list.Count;
             }
 
-            m_list.Insert(found, behavior);
+                   m_list.Insert(found, behavior);
+            return m_list[found];
         }
 
         /// <summary>
-        /// Remove a type of behaviour.
+        /// Removes a behaviour.
         /// </summary>
-        /// <typeparam name="T">Type of behaviour.</typeparam>
-        public void Remove<T>()
+        /// <typeparam name="T">Type of behaviour to remove.</typeparam>
+        /// <returns>Reference to the removed behaviour or null if no behaviour was removed.</returns>
+        public IGameBehaviour Remove<T>()
         {
             int i  = ImplFindIndex(typeof(T));
-            if (i >= 0)
+            if (i < 0)
             {
-                ImplRemove(i);
+                return null;
             }
+
+            return ImplRemove(i);
         }
 
         /// <summary>
-        /// Implement the removal of a behaviour.
+        /// Implements the removal of a behaviour.
         /// </summary>
         /// <param name="index">Index of the behaviour to remove.</param>
-        public void ImplRemove(int index)
+        /// <returns>Removed behaviour.</returns>
+        public IGameBehaviour ImplRemove(int index)
         {
+            IGameBehaviour b = m_list[index];
+
             m_list.RemoveAt(index);
+            return b;
         }
     }
 }

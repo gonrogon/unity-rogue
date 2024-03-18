@@ -1,0 +1,101 @@
+{
+  "humanoid": {
+    "members": [
+      {
+        "name": "head",
+        "id": "H",
+        "type": "Head",
+        "armor": true,
+        "wield": false
+      },
+      {
+        "name": "chest",
+        "id": "C",
+        "type": "UpperBody",
+        "armor": true,
+        "wield": false
+      },
+      {
+        "name": "left arm",
+        "id": "LA",
+        "type": "Arm",
+        "armor": true,
+        "wield": false
+      },
+      {
+        "name": "right arm",
+        "id": "RA",
+        "type": "Arm",
+        "armor": true,
+        "wield": false
+      },
+      {
+        "name": "left hand",
+        "id": "L",
+        "type": "Hand",
+        "armor": true,
+        "wield": true
+      },
+      {
+        "name": "right hand",
+        "id": "R",
+        "type": "Hand",
+        "armor": true,
+        "wield": true
+      },
+      {
+        "name": "left leg",
+        "id": "LL",
+        "type": "Leg",
+        "armor": true,
+        "wield": false
+      },
+      {
+        "name": "right leg",
+        "id": "RL",
+        "type": "Leg",
+        "armor": true,
+        "wield": false
+      },
+      {
+        "name": "left foot",
+        "id": "LF",
+        "type": "Foot",
+        "armor": true,
+        "wield": false
+      },
+      {
+        "name": "right foot",
+        "id": "RF",
+        "type": "Foot",
+        "armor": true,
+        "wield": false
+      }
+    ]
+  },
+  "mob": {
+    "members": [
+      {
+        "name": "left hand",
+        "id": "L",
+        "type": "Hand",
+        "armor": true,
+        "wield": true
+      },
+      {
+        "name": "right hand",
+        "id": "R",
+        "type": "Hand",
+        "armor": true,
+        "wield": true
+      },
+      {
+        "name": "head",
+        "id": "H",
+        "type": "Head",
+        "armor": true,
+        "wield": false
+      }
+    ]
+  }
+}

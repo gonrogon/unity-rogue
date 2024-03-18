@@ -62,8 +62,6 @@ namespace Rogue.Game.Stock
 
         private readonly Broker m_broker = new();
 
-
-
         private readonly Dictionary<Ident, int> m_pendingJobs = new ();
 
         /// <summary>
@@ -72,6 +70,8 @@ namespace Rogue.Game.Stock
         private readonly List<Stockpile> m_stockpiles = new();
 
         private readonly List<Ident> m_markets = new ();
+
+        private readonly List<int> m_canBeSold = new ();
 
         /// <summary>
         /// Game map.
@@ -99,6 +99,7 @@ namespace Rogue.Game.Stock
             m_map                  = map;
             m_map.OnEntityAdded   += OnMapEntityAdded;
             m_map.OnEntityRemoved += OnMapEntityRemoved;
+
         }
 
         public void Quit()

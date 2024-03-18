@@ -2,27 +2,15 @@
      {
         "name": "farmer",
         "components": [
-            {
-                "component": ["Name", {"name": "farmer", "description": "a normal farmer"}]
-            },
-            {
-                "component": ["Location"]
-            },
-            {
-                "component": ["Life", {"max": 100, "initial": 100, "current": 100}]
-            },
-            {
-                "component": ["Inventory"]
-            },
-            {
-                "component": ["Body"]
-            },
-            {
-                "component": ["View", {"type": "ViewMob", "sprite": "enemy"}]
-            }
+            ["name", {"name": "farmer", "description": "a normal farmer"}],
+            ["location"],
+            ["life", {"max": 100, "initial": 100, "current": 100}],
+            ["inventory"],
+            ["body", {"template": "mob"}],
+            ["view", {"type": "ViewMob", "sprite": "enemy"}]
         ],
         "behaviours": [
-            "Name", "Life", "Move", "Builder", "Farmer", "Equip"
+            "name", "life", "move", "builder", "farmer", "equip"
         ]
      }
 ]

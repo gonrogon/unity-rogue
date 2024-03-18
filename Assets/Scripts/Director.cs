@@ -5,6 +5,7 @@ using UnityEngine.Tilemaps;
 using Rogue.Map;
 using Rogue.Coe;
 using GG.Mathe;
+using Rogue.Game;
 
 namespace Rogue {
 
@@ -15,6 +16,8 @@ public class Director : MonoBehaviour
     public List<TextAsset> m_categoriesToLoad;
 
     public List<TextAsset> m_itemTypesToLoad;
+
+    public List<TextAsset> m_bodiesToLoad;
 
     public Input input;
         
@@ -48,6 +51,8 @@ public class Director : MonoBehaviour
 
     public Core.Ident eid = Core.Ident.Zero;
 
+    public Game.TimeManager m_timeManager = new ();
+
     public Game.Scheduler m_scheduler = new();
 
     public Game.Jobs.JobManager m_jobs = new();
@@ -74,6 +79,8 @@ public class Director : MonoBehaviour
 
     private Game.Stock.StockSystem m_stocks = new();
 
+    public bool m_paused = false;
+
     public int money = 1000;
 
     [SerializeField]
@@ -82,17 +89,21 @@ public class Director : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        m_timeManager.Setup(10000, 10, 25, 4);
+
         m_builder = new(m_crops);
 
         viewTable.grid = grid;
         //GameViewUtil.AddFactory(viewTable);
 
         //m_templates = new TemplateDatabase();
+        
         m_world = new GameWorld();
         //m_map   = new GameMap(32, 32);
 
         Context.Provide(input);
         Context.Provide(m_world);
+        Context.Provide(m_timeManager);
         Context.Provide(m_scheduler);
         Context.Provide(m_categories);
         Context.Provide(m_itemtypes);
@@ -103,7 +114,9 @@ public class Director : MonoBehaviour
 
         m_builder.map = m_mapView;
 
-
+        
+        m_world.AddListener(new InventoryWorldListener(m_inventories));
+        m_world.AddListener(new BodyWorldListener(m_bodies));
 
         // CATEGORIES AND TYPES
 
@@ -149,11 +162,44 @@ public class Director : MonoBehaviour
         //m_stocks.AddStockpile();
         Context.Provide(m_stocks);
 
+        // BODIES
+        /*
+        Body body = new ();
+        body.Add(new BodyMember(BodyMember.Type.Head, "head", "H"));
+        body.Add(new BodyMember(BodyMember.Type.UpperBody, "chest", "UB"));
+        body.Add(new BodyMember(BodyMember.Type.Arm, "left arm", "LA"));
+        body.Add(new BodyMember(BodyMember.Type.Arm, "right arm", "RA"));
+        body.Add(new BodyMember(BodyMember.Type.Hand, "left hand",  "L"));
+        body.Add(new BodyMember(BodyMember.Type.Hand, "right hand", "R"));
+        body.Add(new BodyMember(BodyMember.Type.LowerBody, "hip", "LB"));
+        body.Add(new BodyMember(BodyMember.Type.Leg, "left leg", "LL"));
+        body.Add(new BodyMember(BodyMember.Type.Leg, "right leg", "RL"));
+        body.Add(new BodyMember(BodyMember.Type.Foot, "left foot", "LF"));
+        body.Add(new BodyMember(BodyMember.Type.Foot, "right foot", "RF"));
+
+        m_bodies.AddTemplate("humanoid", body);
+
+        body = new ();
+        body.Add(new BodyMember(BodyMember.Type.Hand, "left hand",  "L"));
+        body.Add(new BodyMember(BodyMember.Type.Hand, "right hand", "R"));
+        body.Add(new BodyMember(BodyMember.Type.Head, "head", "H"));
+        m_bodies.AddTemplate("mob", body);
+
+        m_bodies.SaveTemplatesToFile("Assets/Data/Templates/Bodies/h.txt");
+        */
+
+        if (m_bodiesToLoad != null)
+        {
+            for (int i = 0; i < m_bodiesToLoad.Count; i++)
+            {
+                Debug.Log($"Loading body templates from: {m_bodiesToLoad[i].name}");
+                m_bodies.LoadTemplatesFromText(m_bodiesToLoad[i].text);
+            }
+        }
+
         // TEMPLATES
 
         GameEntity ent;
-        Core.Ident bid;
-        Core.Ident iid;
 
         // STOCKPILE
 
@@ -161,6 +207,7 @@ public class Director : MonoBehaviour
         {
             for (int i = 0; i < m_templatesToLoad.Count; i++)
             {
+                
                 m_world.LoadTemplatesFromText(m_templatesToLoad[i].text);
             }
         }
@@ -174,22 +221,19 @@ public class Director : MonoBehaviour
         m_world.Start(ent);
 
         // PLAYER
-
-        //ent = new GameEntity();
+        /*
         ent = m_world.Create();
 
         bid = m_bodies.Add();
-        m_bodies.Get(bid).Add(new Game.BodyMember(Game.BodyMember.Type.Hand, "left hand",  "L"));
-        m_bodies.Get(bid).Add(new Game.BodyMember(Game.BodyMember.Type.Hand, "right hand", "R"));
-
-        iid = m_inventories.Add();
+        m_bodies.Get(bid).Add(new BodyMember(BodyMember.Type.Hand, "left hand",  "L"));
+        m_bodies.Get(bid).Add(new BodyMember(BodyMember.Type.Hand, "right hand", "R"));
 
         ent.AddComponent(new Game.Comp.Life(100, 100, 100));
         ent.AddComponent(new Game.Comp.Location(new Vec2i(1, 0)));
         ent.AddComponent(new Game.Comp.Name("player", "the player character"));
-        ent.AddComponent(new Game.Comp.Tag(Game.TagType.Player));
-        ent.AddComponent(new Game.Comp.Inventory(iid));
-        ent.AddComponent(new Game.Comp.Body(bid));
+        ent.AddComponent(new Game.Comp.Tag(TagType.Player));
+        ent.AddComponent(new Game.Comp.Inventory());
+        ent.AddComponent(new Game.Comp.Body("humanoid", Core.Ident.Zero));
         ent.AddComponent(new Game.Comp.View("ViewMob", null, "player"));
         ent.AddBehaviour(new Game.Behav.Name());
         ent.AddBehaviour(new Game.Behav.Life());
@@ -206,50 +250,43 @@ public class Director : MonoBehaviour
         Context.Map.Add(new Vec2i(1, 0), ent.Id);
         eid = ent.Id;
         m_world.Start(ent);    
+        */
 
         // FARMER 1
 
         ent = m_world.Create("farmer");
-
-        bid = m_bodies.Add();
-        m_bodies.Get(bid).Add(new Game.BodyMember(Game.BodyMember.Type.Hand, "left hand",  "L"));
-        m_bodies.Get(bid).Add(new Game.BodyMember(Game.BodyMember.Type.Hand, "right hand", "R"));
-
-        iid = m_inventories.Add();
 
         ent.FindFirstComponent<Game.Comp.Name>().name = "farmer 1";
         ent.FindFirstComponent<Game.Comp.Location>().position = new Vec2i(8, 4);
         Context.Map.Add(new Vec2i(8, 4), ent.Id);
         m_world.Start(ent);
 
-        m_scheduler.Add(new Game.AgentBetree(ent.Id));
+        m_scheduler.Add(new AgentBetree(ent.Id));
         
         // FARMER 2
         
         ent = m_world.Create("farmer");
-
-        bid = m_bodies.Add();
-        m_bodies.Get(bid).Add(new Game.BodyMember(Game.BodyMember.Type.Hand, "left hand",  "L"));
-        m_bodies.Get(bid).Add(new Game.BodyMember(Game.BodyMember.Type.Hand, "right hand", "R"));
-
-        iid = m_inventories.Add();
 
         ent.FindFirstComponent<Game.Comp.Name>().name = "farmer 2";
         ent.FindFirstComponent<Game.Comp.Location>().position = new Vec2i(2, 5);
         Context.Map.Add(new Vec2i(2, 5), ent.Id);
         m_world.Start(ent);
 
-        m_scheduler.Add(new Game.AgentBetree(ent.Id));
+        m_scheduler.Add(new AgentBetree(ent.Id));
         
+        // ENEMY
+
+        //ent = m_world.Create("enemy");
+
+
         // DOOR
 
-        //ent = new GameEntity();
         ent = m_world.Create();
 
         ent.AddComponent(new Game.Comp.Location(new Vec2i(3, 2)));
         ent.AddComponent(new Game.Comp.Name("door", "an ordinary door"));
         ent.AddComponent(new Game.Comp.Lock(true));
-        ent.AddComponent(new Game.Comp.Block(Game.TagType.All ^ Game.TagType.Player, true));
+        ent.AddComponent(new Game.Comp.Block(TagType.All ^ TagType.Player, true));
         ent.AddComponent(new Game.Comp.View("ViewSimple", "Default", "door"));
         ent.AddBehaviour(new Game.Behav.Name());
         ent.AddBehaviour(new Game.Behav.Door());
@@ -300,19 +337,37 @@ public class Director : MonoBehaviour
             m_elapsed = 0;
 
 
-            m_stocks.Update();
-            m_crops.Update((int)(m_timestep * 1000.0f));
-            m_jobs.Update();
-            m_scheduler.Step((int)(m_timestep * 1000.0f));
-            m_mapCtrl  .Step();
-            //m_map      .Step();
-            m_world    .Step(m_timestep);
+            if (!m_paused)
+            {
+                UpdateWorld();
+            }
         }
     }
 
-    public IEnumerator Once()
+    public void UpdateWorld()
     {
-        return null;
+        // Elapsed time in milliseconds.
+        int millis = (int)(m_timestep * 1000.0f);
+        
+        m_timeManager.Step(millis);
+
+        m_stocks  .Update();
+        m_crops   .Update(millis);
+        m_jobs    .Update();
+
+        m_scheduler.Step(millis);
+        m_mapCtrl  .Step();
+        m_world    .Step(m_timestep);
+    }
+
+    public void Pause()
+    {
+        m_paused = true;
+    }
+
+    public void Resume()
+    {
+        m_paused = false;
     }
 
     public void Move(string dir)

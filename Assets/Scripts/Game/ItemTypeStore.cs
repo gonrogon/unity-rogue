@@ -12,39 +12,43 @@ namespace Rogue.Game
     /// </summary>
     public class ItemTypeStore
     {
-        public struct Note
+        /// <summary>
+        /// Defines a structure to store the metadata about a type.
+        /// </summary>
+        public struct Meta
         {
             /// <summary>
-            /// Unique string identifier of the type.
+            /// Unique string with the name of the type.
             /// </summary>
             public string name;
 
             /// <summary>
-            /// Category.
+            /// Category identifier.
             /// </summary>
             public CategoryId category;
         }
 
         /// <summary>
-        /// Dictionary with the notes about the types.
+        /// Dictionary with the pairs type/metadata.
         /// </summary>
-        private readonly Dictionary<ItemType, Note> m_types = new();
+        private readonly Dictionary<ItemType, Meta> m_types = new();
 
         /// <summary>
         /// Dictionary with the pairs name/type.
         /// </summary>
         private readonly Dictionary<string, ItemType> m_names = new();
 
+        /// <summary>
+        /// Identifier for the next type.
+        /// </summary>
         private int m_nextTypeId = 0;
 
-        public void Create(string name, CategoryId category)
-        {
-            ItemType type = new (m_nextTypeId++);
-            m_types[type] = new Note{ name = name, category = category };
-            m_names[name] = type;
-        }
-
-        public ItemType Find(string name)
+        /// <summary>
+        /// Gets the type for a type name.
+        /// </summary>
+        /// <param name="name">Type name.</param>
+        /// <returns>Type if the type name exists; otherwise, none.</returns>
+        public ItemType GetType(string name)
         {
             if (!m_names.TryGetValue(name, out ItemType type))
             {
@@ -54,14 +58,64 @@ namespace Rogue.Game
             return type;
         }
 
-        public string GenerateName(ItemType type)
+        /// <summary>
+        /// Gets the name of a item type.
+        /// </summary>
+        /// <param name="type">Type.</param>
+        /// <returns>Name if the type exists; otherwise, null.</returns>
+        public string GetName(ItemType type)
         {
-            if (!m_types.TryGetValue(type, out Note note))
+            if (!m_types.TryGetValue(type, out Meta meta))
             {
                 return null;
             }
 
-            return note.name;
+            return meta.name;
+        }
+
+        /// <summary>
+        /// Gets the category of a type.
+        /// </summary>
+        /// <param name="name">Type.</param>
+        /// <returns>Category identifier it the type exists; otherwise, none.</returns>
+        public CategoryId GetCategory(string name)
+        {
+            ItemType type = GetType(name);
+
+            if (!type.Valid)
+            {
+                return CategoryId.None;
+            }
+
+            return GetCategory(type);
+        }
+
+        /// <summary>
+        /// <summary>
+        /// Gets the category of a type.
+        /// </summary>
+        /// <param name="type">Type.</param>
+        /// <returns>Category identifier if the type exists; otherwise, none.</returns>
+        public CategoryId GetCategory(ItemType type)
+        {
+            if (!m_types.TryGetValue(type, out Meta meta))
+            {
+                return CategoryId.None;
+            }
+
+            return meta.category;
+        }
+
+        /// <summary>
+        /// Creates a new type.
+        /// </summary>
+        /// <param name="name">Name of the type.</param>
+        /// <param name="category">Category identifier.</param>
+        public void Create(string name, CategoryId category)
+        {
+            ItemType type = new (m_nextTypeId++);
+            m_types[type] = new Meta{ name = name, category = category };
+            m_names[name] = type;
         }
 
         public void LoadFromText(string text)

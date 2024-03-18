@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
+using UnityEngine;
 
 namespace Rogue.Coe.Serialization
 {
@@ -20,26 +22,28 @@ namespace Rogue.Coe.Serialization
         {
             JArray jarray = serializer.Deserialize<JArray>(reader);
             IGameComponent comp;
-            // Creates a new component if it is needed.
+            // Creates an instance of the component.
             if (hasExistingValue)
             {
                 comp = existingValue;
             }
             else
             {
-                comp = GameComponentUtil.CreateFromName((string)jarray[0]);
-                // Invalid class name.
-                if (comp == null)
+                if (TemplateUtil.ParseComponentName((string)jarray[0], out string name))
                 {
-                    return null;
+                    comp = GameComponentUtil.CreateFromName(name);
+                }
+                else
+                {
+                    comp = null;
                 }
             }
-            
-            if (jarray.Count > 1)
+            // Read the component data.
+            if (comp != null && jarray.Count > 1)
             {
                 serializer.Populate(jarray[1].CreateReader(), comp);
             }
-
+            // Done.
             return comp;
         }
 

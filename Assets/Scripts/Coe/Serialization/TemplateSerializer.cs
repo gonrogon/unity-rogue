@@ -74,7 +74,7 @@ namespace Rogue.Coe.Serialization
             serializer.Serialize(writer, template);
         }
 
-        private static JsonSerializer CreateSerializer(TemplateDatabase database)
+        public static JsonSerializer CreateSerializer(TemplateDatabase database)
         {
             JsonSerializer serializer = new ();
 

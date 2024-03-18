@@ -1,18 +1,32 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Coe;
+using Rogue.Coe;
+using UnityEngine;
 
 namespace Rogue.Views
 {
-    public class ViewManager : MonoBehaviour
+    public class ViewManager : MonoBehaviour, IGameWorldListerner
     {
+        /// <summary>
+        /// Grid.
+        /// </summary>
         [SerializeField]
         private Grid m_grid = null;
 
+        /// <summary>
+        /// List of views.
+        /// </summary>
         [SerializeField]
         private ViewTable[] m_views = null;
 
+        /// <summary>
+        /// List of sprites.
+        /// </summary>
         [SerializeField]
         private SpriteTable[] m_sprites = null;
 
+        /// <summary>
+        /// View factory.
+        /// </summary>
         private ViewFactory m_factory = null;
 
         /// <summary>
@@ -20,65 +34,66 @@ namespace Rogue.Views
         /// </summary>
         public Grid Grid => m_grid;
 
-        public void Listen(Coe.GameWorld world, Map.GameMap map)
+        private void Awake()
         {
-            world.OnEntityAdded   += OnWorldEntityAdded;
-            world.OnEntityRemoved += OnWorldEntityRemoved;
-            map.OnEntityAdded     += OnMapEntityAdded;
-            map.OnEntityRemoved   += OnMapEntityRemoved;
+            m_factory = new ViewFactory(this, m_views);
+            // Link the factory to the entity system.
+            GameViewUtil.AddFactory(m_factory);
         }
 
-        private void OnWorldEntityAdded(Coe.GameWorld world, Coe.GameEntity entity)
+        public void Listen(GameWorld world, Map.GameMap map)
         {
-            if (entity.ContainsView())
+            world.AddListener(this);
+
+            map.OnEntityAdded   += OnMapEntityAdded;
+            map.OnEntityRemoved += OnMapEntityRemoved;
+        }
+
+        #region @@@ LISTENERS @@@
+
+        public void OnEntityAdded(GameWorld world, GameEntity entity) => SetView(entity);
+
+        public void OnEntityRemoved(GameWorld world, GameEntity entity) => RemoveView(entity);
+
+        public void OnComponentAdded(GameWorld world, GameEntity entity, IGameComponent component) {}
+
+        public void OnComponentRemoved(GameWorld world, GameEntity entity, IGameComponent component) {}
+
+        public void OnBehaviourAdded(GameWorld world, GameEntity entity, IGameBehaviour behaviour) {}
+
+        public void OnBehaviourRemoved(GameWorld world, GameEntity entity, IGameBehaviour behaviour) {}
+
+        public void OnMapEntityAdded(Map.GameMap map, Core.Ident eid, GG.Mathe.Vec2i where) => SetView(Context.World.Find(eid));
+
+        public void OnMapEntityRemoved(Map.GameMap map, Core.Ident eid, GG.Mathe.Vec2i where) => RemoveView(Context.World.Find(eid));
+
+        private void SetView(GameEntity entity)
+        {
+            if (entity == null ||entity.ContainsView())
             {
                 return;
             }
 
-            var view = entity.FindFirstComponent<Game.Comp.View>();
+            var view =  entity.FindFirstComponent<Game.Comp.View>();
             if (view == null)
             {
                 return;
             }
 
-            if (view.mapOnly)
-            {
-                return;
-            }
-
-            entity.SetView(m_factory.Create(view.type, view.name));
+            entity.SetView(view.type, view.name);
         }
-        
-        private void OnWorldEntityRemoved(Coe.GameWorld world, Coe.GameEntity entity)
-        {}
 
-        private void OnMapEntityAdded(Map.GameMap map, Core.Ident eid, GG.Mathe.Vec2i where)
+        private void RemoveView(GameEntity entity)
         {
-            Coe.GameEntity entity = Context.World.Find(eid);
-            if (entity.ContainsView())
-            {
-                return;
-            }
-
-            var view = entity.FindFirstComponent<Game.Comp.View>();
-            if (view == null)
-            {
-                return;
-            }
-
-            entity.SetView(m_factory.Create(view.type, view.name));
+            entity?.RemoveView();
         }
 
-        private void OnMapEntityRemoved(Map.GameMap map, Core.Ident eid, GG.Mathe.Vec2i where)
-        {
-            Coe.GameEntity entity = Context.World.Find(eid);
-            entity.RemoveView();
-        }
+        #endregion
 
         #region @@@ SPRITES @@@
 
         /// <summary>
-        /// Try to get a sprite.
+        /// Tries to get a sprite.
         /// </summary>
         /// <param name="name">Name.</param>
         /// <param name="sprite">Sprite.</param>
@@ -95,17 +110,6 @@ namespace Rogue.Views
             }
 
             return false;
-        }
-
-        #endregion
-
-        #region @@@ UNITY LIFE CYCLE @@@
-
-        private void Awake()
-        {
-            m_factory = new ViewFactory(this, m_views);
-            // Link the factory to the entity system.
-            Coe.GameViewUtil.AddFactory(m_factory);
         }
 
         #endregion

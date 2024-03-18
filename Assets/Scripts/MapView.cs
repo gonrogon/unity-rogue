@@ -26,8 +26,6 @@ namespace Rogue
 
         public Tile m_selectionTile;
 
-        private System.Random m_random = new System.Random();
-
         public Vec2i GetMouseCoord()
         {
             Vector2 mouse = Mouse.current.position.ReadValue();
@@ -44,11 +42,8 @@ namespace Rogue
 
         public Vec2i GetMouseCoord(float mx, float my)
         {
-            Vector3 world = Camera.main.ScreenToWorldPoint(new Vector3(mx, my, -10.0f));
-
-            Vector3Int cell = m_ground.WorldToCell(world);
-
-            //Debug.Log("CELL: " + cell);
+            Vector3    world = Camera.main.ScreenToWorldPoint(new Vector3(mx, my, -10.0f));
+            Vector3Int cell  = m_ground.WorldToCell(world);
 
             return new Vec2i(cell.x, cell.y);;
         }
@@ -64,28 +59,24 @@ namespace Rogue
 
             foreach (Vec2i coord in rect)
             {
-                //cell = map.GetCell(coord);
                 var floor = map.GetFloorData(coord);
                 var wall  = map.GetWallData(coord);
                 // Show the wall.
                 if (wall != null)
                 {
                     m_ground.SetTile(new Vector3Int(coord.x, coord.y, 0), wall.GetTileByIndex(map.GetWallTileIndex(coord)));
-                    //m_ground.SetTile(new Vector3Int(coord.x, coord.y, 0), wall.GetRandomTile(m_random));
-                    //m_ground.SetTile(new Vector3Int(coord.x, coord.y, 0), cell);
                     continue;
                 }
                 // No wall, show the floor.
                 if (floor != null)
                 {
                     m_ground.SetTile(new Vector3Int(coord.x, coord.y, 0), floor.GetTileByIndex(map.GetFloorTileIndex(coord)));
-                    //m_ground.SetTile(new Vector3Int(coord.x, coord.y, 0), floor.GetRandomTile(m_random));
                     continue;
                 }
 
                 //m_ground.SetTile(new Vector3Int(coord.x, coord.y, 0), terrain.GetDefaultFloor().tile);
             }
-            // Add shadows.
+            // Shadows
             /*
             foreach (Vec2i coord in rect)
             {
@@ -111,7 +102,8 @@ namespace Rogue
                 }
             }
             */
-            // Add borders.
+            // Borders
+            /*
             foreach (Vec2i coord in rect)
             {
                 if (map.HasWall(coord))
@@ -131,11 +123,10 @@ namespace Rogue
                     m_boder.SetTile(tilePos, m_boderTile);
                 }
             }
+            */
         }
 
-        // -----
-        // DEBUG
-        // -----
+        #region @@@ DEBUG @@@
 
         public void SetSelection(Rect2i rect)
         {
@@ -154,6 +145,8 @@ namespace Rogue
         {
             m_debug.ClearAllTiles(); 
         }
+
+        #endregion
 
         #region @@@ UTILITIES @@@
 

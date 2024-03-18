@@ -1,5 +1,8 @@
 ﻿using System;
 using Rogue.Core;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json.Converters;
 
 namespace Rogue.Game
 {
@@ -9,44 +12,64 @@ namespace Rogue.Game
         public enum Flags
         {
             None  = 0,
-            Hold  = 1,
+            Wield = 1,
             Armor = 2
         }
 
-        public enum Type { Head, Chest, Arm, Hand, Leg, Foot }
+        public enum Type { Head, UpperBody, LowerBody, Arm, Hand, Leg, Foot }
 
+        [JsonProperty(PropertyName = "type"), JsonConverter(typeof(StringEnumConverter))]
         public Type type = Type.Head;
 
+        [JsonIgnore]
         public Flags flags = Flags.None;
 
+        [JsonProperty(PropertyName = "name")]
         public string name = "";
 
+        [JsonProperty(PropertyName = "id")]
         public string id = "";
 
-        public Ident hold = Ident.Zero;
+        [JsonIgnore]
+        public Ident wield = Ident.Zero;
 
+        [JsonIgnore]
         public Ident armor = Ident.Zero;
 
-        public bool AllowHold => (flags & Flags.Hold) != Flags.None;
+        [JsonIgnore]
+        public bool AllowWield => (flags & Flags.Wield) != Flags.None;
 
+        [JsonIgnore]
         public bool AllowArmor => (flags & Flags.Armor) != Flags.None;
 
-        public bool IsHolding => !hold.IsZero;
+        [JsonIgnore]
+        public bool IsHolding => !wield.IsZero;
 
+        [JsonIgnore]
         public bool IsArmored => !armor.IsZero;
 
         public BodyMember() {}
 
         public BodyMember(Type type, string name, string id) : this(type, name, id, Ident.Zero, Ident.Zero) {}
 
-        public BodyMember(Type type, string name, string id, Ident hold, Ident armor)
+        public BodyMember(Type type, string name, string id, Ident wield, Ident armor)
         {
             this.type  = type;
             this.name  = name;
             this.id    = id;
-            this.hold  = hold;
+            this.flags = Flags.Armor | ((type == Type.Hand) ? Flags.Wield : Flags.None);
+            this.wield = wield;
             this.armor = armor;
-            this.flags = Flags.Armor | ((type == Type.Hand) ? Flags.Hold : Flags.None);
+        }
+
+        public BodyMember(BodyMember member)
+        {
+            type  = member.type;
+            name  = member.name;
+            id    = member.id;
+            flags = member.flags;
+            wield = Ident.Zero;
+            armor = Ident.Zero;
         }
     }
 }

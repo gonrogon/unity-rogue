@@ -95,7 +95,7 @@ namespace Rogue.Game
             var bc = (Gui.ContextBuild)context;
             map.ClearDebug();
 
-            int  id;
+            int id;
             if (m_weaponStockpile)
             {
                 id = Game.Stock.StockpileFactory.CreateWeaponStockpile(bc.Selection);
@@ -119,7 +119,6 @@ namespace Rogue.Game
             map.ClearDebug();
             map.SetSelection(bc.Selection);
         }
-
 
         # endregion
 

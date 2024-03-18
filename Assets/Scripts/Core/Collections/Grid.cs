@@ -52,10 +52,7 @@ namespace Rogue.Core.Collections
         /// </summary>
         /// <param name="coord">Coordinate.</param>
         /// <returns>True if the coordinate is inside the grid; otherwise false.</returns>
-        public bool HasCoord(Vec2i coord)
-        {
-             return coord.Row >= 0 && coord.Row < Rows && coord.Col >= 0 && coord.Col < Cols;
-        }
+        public bool HasCoord(Vec2i coord) => coord.Row >= 0 && coord.Row < Rows && coord.Col >= 0 && coord.Col < Cols;
 
         /// <summary>
         /// Get the value at a position.
@@ -79,10 +76,7 @@ namespace Rogue.Core.Collections
         /// </summary>
         /// <param name="coord">Coordinate.</param>
         /// <param name="value">Item to set.</param>
-        public void Set(Vec2i coord, T value)
-        {
-            GetRef(coord) = value;
-        }
+        public void Set(Vec2i coord, T value) => GetRef(coord) = value;
 
         /// <summary>
         /// Set the value at a list of coordinates.
@@ -100,16 +94,13 @@ namespace Rogue.Core.Collections
         /// <summary>
         /// Clears the grid and sets the default value for the items.
         /// </summary>
-        public void Clear() => Clear(default(T));
+        public void Clear() => Clear(default);
 
         /// <summary>
         /// Clears the grid and sets a new value for the items.
         /// </summary>
         /// <param name="value">Value to set.</param>
-        public void Clear(T value)
-        {
-            Array.Fill(m_cells, value);
-        }
+        public void Clear(T value) => Array.Fill(m_cells, value);
 
         /// <summary>
         /// Finds the first item in a coordinate that matches the conditions by the specified predicate.
@@ -151,10 +142,7 @@ namespace Rogue.Core.Collections
         /// </summary>
         /// <param name="coord">Coordiante.</param>
         /// <param name="action">Action.</param>
-        public void ForEach(Vec2i coord, Action<T> action)
-        {
-            action(GetRef(coord));
-        }
+        public void ForEach(Vec2i coord, Action<T> action) => action(GetRef(coord));
 
         /// <summary>
         /// Performs the specified action on each value in a list of coordinates.
@@ -168,10 +156,6 @@ namespace Rogue.Core.Collections
                 action(GetRef(coord));
             }
         }
-
-        // -------
-        // HELPERS
-        // -------
 
         /// <summary>
         /// Gets the index of a coordinate.

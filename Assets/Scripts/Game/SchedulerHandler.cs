@@ -17,7 +17,7 @@ namespace Rogue.Game
         /// <summary>
         /// Flag indicating whether the scheduling is done or not.
         /// </summary>
-        public bool IsDone => m_schedulable is null;
+        public bool IsDone => m_schedulable == null;
 
         /// <summary>
         /// Constructor.

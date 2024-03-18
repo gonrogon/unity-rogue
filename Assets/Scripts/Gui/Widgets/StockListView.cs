@@ -74,7 +74,7 @@ namespace Rogue.Gui.Widgets
 
                     if (note.stackable)
                     {
-                        name = Rogue.Context.ItemTypes.GenerateName(type);
+                        name = Rogue.Context.ItemTypes.GetName(type);
                     }
                     else
                     {

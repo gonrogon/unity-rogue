@@ -2,6 +2,7 @@
 using UnityEngine;
 using Rogue.Core;
 using Rogue.Core.Collections;
+using Assets.Scripts.Coe;
 
 namespace Rogue.Coe
 {
@@ -82,6 +83,27 @@ namespace Rogue.Coe
         /// </summary>
         private readonly List<Ident> m_dead = new ();
 
+        /// <summary>
+        /// List of listeners.
+        /// </summary>
+        private readonly List<IGameWorldListerner> m_listeners = new ();
+
+        #region @@@ LISTENERS @@@
+
+        /// <summary>
+        /// Adds a listener.
+        /// </summary>
+        /// <param name="listener">Listener to add.</param>
+        public void AddListener(IGameWorldListerner listener) => m_listeners.Add(listener);
+
+        /// <summary>
+        /// Removes a listener.
+        /// </summary>
+        /// <param name="listener">Listener to remove.</param>
+        public void RemoveListener(IGameWorldListerner listener) => m_listeners.Remove(listener);
+
+        #endregion
+
         #region @@@ TEMPLATES @@@
 
         /// <summary>
@@ -124,11 +146,6 @@ namespace Rogue.Coe
             return true;
         }
         */
-
-        public void SaveTemplates(string file)
-        {
-            m_templates.Save(file);
-        }
 
         public bool LoadTemplatesFromText(string text)
         {
@@ -306,6 +323,10 @@ namespace Rogue.Coe
                     m_entities.Overwrite(id, item);
 
                     OnEntityAdded?.Invoke(this, item.entity);
+                    foreach (var listener in m_listeners)
+                    {
+                        listener.OnEntityAdded(this, item.entity);
+                    }
                 }
             }
 
@@ -313,8 +334,8 @@ namespace Rogue.Coe
 
             foreach (var pair in m_entities)
             {
-                Ident id   = pair.id;
-                Item  item = pair.value;
+                Ident id   = pair.Key;
+                Item  item = pair.Value;
 
                 if (item.IsReady)
                 {
@@ -348,6 +369,11 @@ namespace Rogue.Coe
                 if (m_entities.TryFind(id, out Item item))
                 {
                     OnEntityRemoved?.Invoke(this, item.entity);
+                    foreach (var listener in m_listeners)
+                    {
+                        listener.OnEntityRemoved(this, item.entity);
+                    }
+
                     m_entities.Release(id);
                 }
             }
@@ -356,5 +382,41 @@ namespace Rogue.Coe
         }
 
         #endregion
+
+        #region @@@ WORLD ENTITY INTERFACE @@@
+
+        internal void OnComponentAdded(GameEntity entity, IGameComponent component)
+        { 
+            foreach (var listener in m_listeners)
+            {
+                listener.OnComponentAdded(this, entity, component);
+            }
+        }
+
+        internal void OnComponentRemoved(GameEntity entity, IGameComponent component)
+        { 
+            foreach (var listener in m_listeners)
+            {
+                listener.OnComponentRemoved(this, entity, component);
+            }
+        }
+
+        internal void OnBehaviourAdded(GameEntity entity, IGameBehaviour behaviour)
+        {
+            foreach (var listener in m_listeners)
+            {
+                listener.OnBehaviourAdded(this, entity, behaviour);
+            }
+        }
+
+        internal void OnBehaviourRemoved(GameEntity entity, IGameBehaviour behaviour)
+        {
+            foreach (var listener in m_listeners)
+            {
+                listener.OnBehaviourRemoved(this, entity, behaviour);
+            }
+        }
+
+        #endregion 
     }
 }

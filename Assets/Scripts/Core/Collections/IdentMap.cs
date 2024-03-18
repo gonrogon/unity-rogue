@@ -4,8 +4,11 @@ using System.Collections.Generic;
 
 namespace Rogue.Core.Collections
 {
-
-    public class IdentMap<T> : IEnumerable<IdentMap<T>.Pair>
+    /// <summary>
+    /// Defines a list that maps identifiers to values.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class IdentMap<T> : IEnumerable<KeyValuePair<Ident, T>>
     {
         /// <summary>
         /// Default minimum number of items before reusing the identifiers.
@@ -18,51 +21,24 @@ namespace Rogue.Core.Collections
         public const int DefaultReuseFactor = 10;
 
         /// <summary>
-        /// Define a item of the list.
+        /// List of items.
         /// </summary>
-        public struct Pair
-        {
-            /// <summary>
-            /// Identifier.
-            /// </summary>
-            public Ident id;
-
-            /// <summary>
-            /// Value.
-            /// </summary>
-            public T value;
-
-            /// <summary>
-            /// Constructor.
-            /// </summary>
-            /// <param name="id">Identifier.</param>
-            /// <param name="value">Value.</param>
-            public Pair(Ident id, T value)
-            {
-                this.id    = id;
-                this.value = value;
-            }
-        }
+        private readonly List<KeyValuePair<Ident, T>> m_items;
 
         /// <summary>
         /// Queue of identifier to reuse (FIFO).
         /// </summary>
-        private Queue<Ident> m_reuse;
-
-        /// <summary>
-        /// List of items.
-        /// </summary>
-        private List<Pair> m_items;
+        private readonly Queue<Ident> m_reuse;
 
         /// <summary>
         /// Minimum number of items before reusing identifiers.
         /// </summary>
-        private int m_reuseLimit;
+        private readonly int m_reuseLimit;
 
         /// <summary>
         /// Minimum perfectage of free identifiers before reusing them.
         /// </summary>
-        private int m_reuseFactor;
+        private readonly int m_reuseFactor;
 
         /// <summary>
         /// Flag indicating whether the list is empty or not.
@@ -87,47 +63,64 @@ namespace Rogue.Core.Collections
         /// <param name="reuseFactor">Minimum perfectage of free identifiers before reusing them.</param>
         public IdentMap(int capacity, int reuseLimit, int reuseFactor)
         {
-            m_items       = new List<Pair>(capacity);
-            m_reuse       = new Queue<Ident>();
+            m_items       = new (capacity);
+            m_reuse       = new ();
             m_reuseLimit  = reuseLimit;
             m_reuseFactor = reuseFactor;
         }
 
-        public bool Contains(Ident id)
+        /// <summary>
+        /// Checks whether or not the map contains an element.
+        /// </summary>
+        /// <param name="key">Identifier.</param>
+        /// <returns>True if the map contains the element; otherwise, false.</returns>
+        public bool Contains(Ident key)
         {
-            if (id.Raw == 0 || id.Value >= m_items.Count)
+            if (key.Raw == 0 || key.Value >= m_items.Count)
             {
                 return false;
             }
 
-            return m_items[id.ValueAsIndex].id == id;
+            return m_items[key.ValueAsIndex].Key == key;
         }
 
-        public T Get(Ident id)
-        {
-            return m_items[id.ValueAsIndex].value;
-        }
+        /// <summary>
+        /// Gets a value.
+        /// </summary>
+        /// <param name="key">Identifier.</param>
+        /// <returns>Value.</returns>
+        public T Get(Ident key) => m_items[key.ValueAsIndex].Value;
 
-        public bool TryFind(Ident id, out T value)
+        /// <summary>
+        /// Tries to find an element.
+        /// </summary>
+        /// <param name="key">Identifier of the element.</param>
+        /// <param name="value">Value.</param>
+        /// <returns>True on success; otherwise, false.</returns>
+        public bool TryFind(Ident key, out T value)
         {
-            value = default(T);
-
-            if (id.Raw == 0 || id.Value >= m_items.Count)
+            value = default;
+            // Check if the key is valid.
+            if (key.Raw == 0 || key.Value >= m_items.Count)
             {
                 return false;
             }
-
-            Pair pair = m_items[id.ValueAsIndex];
-
-            if (pair.id != id)
+            // Check if both keys are equal.
+            var pair = m_items[key.ValueAsIndex];
+            if (pair.Key != key)
             {
                 return false;
             }
-
-            value = pair.value;
-            return  true;
+            // Done.
+            value = pair.Value;
+            return true;
         }
 
+        /// <summary>
+        /// Adds a new element to the map.
+        /// </summary>
+        /// <param name="value">Value to add.</param>
+        /// <returns>Identifier assigned to the element.</returns>
         public Ident Add(T value)
         {
             if (!Reuse(out Ident id))
@@ -135,71 +128,88 @@ namespace Rogue.Core.Collections
                 id = new Ident((uint)m_items.Count, 1);
             }
 
-            m_items.Insert(id.ValueAsIndex, new Pair(id, value));
+            m_items.Insert(id.ValueAsIndex, new (id, value));
 
             return id;
         }
 
-        public void Overwrite(Ident id, T value)
+        /// <summary>
+        /// Overwrites an element.
+        /// </summary>
+        /// <param name="key">Identifier of the element to be overwritten.</param>
+        /// <param name="value">Value to set.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Identifier not found.</exception>
+        public void Overwrite(Ident key, T value)
         {
-            if (id.Raw == 0 || id.Value >= m_items.Count)
+            if (key.Raw == 0 || key.Value >= m_items.Count || m_items[key.ValueAsIndex].Key == Ident.Zero)
             {
                 throw new ArgumentOutOfRangeException("Ident not found", "id");
             }
-            // TODO: Check if the ident is free.
-            m_items[id.ValueAsIndex] = new Pair(id, value);
+
+            m_items[key.ValueAsIndex] = new (key, value);
         }
 
-        public void Release(Ident id)
+        /// <summary>
+        /// Releases an element.
+        /// </summary>
+        /// <param name="key">Identifier of the element to be released.</param>
+        public void Release(Ident key)
         {
-            if (!Contains(id))
+            if (!Contains(key))
             {
                 return;
             }
             // Reset the item in the list with a empty id and a default value.
-            m_items[id.ValueAsIndex] = new Pair(Ident.Zero, default(T));
+            m_items[key.ValueAsIndex] = new (Ident.Zero, default);
             // Add id to the queue of free ids.
-            m_reuse.Enqueue(id);
+            m_reuse.Enqueue(key);
         }
 
+        /// <summary>
+        /// Clears the map.
+        /// </summary>
         public void Clear()
         {
             m_items.Clear();
             m_reuse.Clear();
         }
 
-        // ----------
-        // ENUMERATOR
-        // ----------
+        /// <summary>
+        /// Gets a forward iterator.
+        /// </summary>
+        /// <returns>Iterator.</returns>
+        public IEnumerator<KeyValuePair<Ident, T>> GetEnumerator() => Iterate(this).GetEnumerator();
 
-        public IEnumerator<Pair> GetEnumerator()
-        {
-            return Iterate(this).GetEnumerator();
-        }
+        /// <summary>
+        /// Gets a forward iterator.
+        /// </summary>
+        /// <returns>Iterator.</returns>
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
+        /// <summary>
+        /// Implements a forward iterator.
+        /// </summary>
+        /// <param name="map">Map to iterate.</param>
+        /// <returns>Iterator.</returns>
+        private static IEnumerable<KeyValuePair<Ident, T>> Iterate(IdentMap<T> map)
         {
-            return GetEnumerator();
-        }
-
-        private static IEnumerable<Pair> Iterate(IdentMap<T> list)
-        {
-            for (int i = 0; i < list.Count; i++)
+            for (int i = 0; i < map.Count; i++)
             {
-                if (!list.m_items[i].id.IsZero)
+                if (!map.m_items[i].Key.IsZero)
                 {
-                    yield return list.m_items[i];
+                    yield return map.m_items[i];
                 }
             }
         }
 
-        // ---------
-        // UTILITIES
-        // ---------
-
-        private bool Reuse(out Ident ident)
+        /// <summary>
+        /// Gets an identifier to reuse.
+        /// </summary>
+        /// <param name="key">Identifier to reuse.</param>
+        /// <returns>True if there is a identifier to reuse; otherwise, false.</returns>
+        private bool Reuse(out Ident key)
         {
-            ident = Ident.Zero;
+            key = Ident.Zero;
 
             if (m_reuse.Count < 0)
             {
@@ -211,7 +221,7 @@ namespace Rogue.Core.Collections
                 return false;
             }
 
-            ident = m_reuse.Dequeue().NextGenerationSkipZero();
+            key = m_reuse.Dequeue().NextGenerationSkipZero();
 
             return true;
         }

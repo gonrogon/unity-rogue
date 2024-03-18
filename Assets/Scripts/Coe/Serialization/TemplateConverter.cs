@@ -1,14 +1,25 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Rogue.Coe.Serialization
 {
+    /// <summary>
+    /// Defines a converter to serialize/deserialize a template.
+    /// </summary>
     public class TemplateConverter : JsonConverter<Template>
     {
+        /// <summary>
+        /// Database where to find references.
+        /// </summary>
         private readonly TemplateDatabase m_database;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="database">Database where to find references.</param>
         public TemplateConverter(TemplateDatabase database)
         {
             m_database = database;
@@ -16,61 +27,67 @@ namespace Rogue.Coe.Serialization
 
         public override Template ReadJson(JsonReader reader, Type objectType, Template existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            JObject  jobj = serializer.Deserialize<JObject>(reader);
-            Template template;
+            var  jobj    = serializer.Deserialize<JObject>(reader);
+            var template = hasExistingValue ? existingValue : new ();
+            // Checks if the templates extends a base template.
+            string  name = jobj.Value<string>("name");
+            string @base = jobj.Value<string>("extends");
+            // Check for valid name.
+            if (string.IsNullOrEmpty(name))
+            {
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.Log($"Invalid template name \"{name}\"");
+                #endif
 
-            if (hasExistingValue)
-            {
-                template = existingValue;
+                return null;
             }
-            else
+            // Check for valid base template.
+            if (!string.IsNullOrEmpty(@base)) 
             {
-                template = new ();
-            }
-            
-            string extends = jobj.Value<string>("extends");
-            if (!string.IsNullOrEmpty(extends))
-            {
-                if (m_database.TryGet(extends, out Template basetpl))
+                if (m_database == null)
                 {
-                    template.Extend(basetpl);
+                    #if UNITY_2017_1_OR_NEWER
+                        UnityEngine.Debug.Log($"Template database not set, imposible to extended \"{name}\" with \"{@base}\"");
+                    #endif
+
+                    return null;
                 }
+
+                if (!m_database.TryGet(@base, out Template bt))
+                {
+                    #if UNITY_2017_1_OR_NEWER
+                        UnityEngine.Debug.LogError($"Base template not found, imposible to extend \"{name}\" with \"{@base}\"");
+                    #endif
+
+                    return null;
+                }
+
+                template.Extend(bt);
             }
-            
-            var tcompListCvt = new TemplateComponentListConverter(m_database, template);
-            var tbehaListCvt = new TemplateBehaviourListConverter(m_database, template);
-            var componentCvt = new TemplateComponentConverter(m_database, template);
-            var behaviourCvt = new TemplateBehaviourConverter(m_database, template);
-            serializer.Converters.Add(tcompListCvt);
-            serializer.Converters.Add(tbehaListCvt);
-            serializer.Converters.Add(componentCvt);
-            serializer.Converters.Add(behaviourCvt);
+
+            TemplateUtil.PushConverters(serializer, m_database, template);
             serializer.Populate(jobj.CreateReader(), template);
-            serializer.Converters.Remove(tcompListCvt);
-            serializer.Converters.Remove(tbehaListCvt);
-            serializer.Converters.Remove(componentCvt);
-            serializer.Converters.Remove(behaviourCvt);
+            TemplateUtil.PopConverters(serializer);
+            // Removes all the components and behaviours marked for removal.
+            int rc = template.RemoveAllComponents(tc => tc.IsRemoved);
+            int rb = template.RemoveAllBehaviours(tb => tb.OverrideState == 1);
+
+            #if DEBUG && UNITY_2017_1_OR_NEWER
+                if (rc > 0) { UnityEngine.Debug.Log($"{rc} template components removed from template {template.Name}"); }
+                if (rb > 0) { UnityEngine.Debug.Log($"{rb} template behaviours removed from template {template.Name}"); }
+            #endif
 
             return template;
         }
 
         public override void WriteJson(JsonWriter writer, Template value, JsonSerializer serializer)
         {
-            var tcompListCvt = new TemplateComponentListConverter(m_database, null);
-            var tbehaListCvt = new TemplateBehaviourListConverter(m_database, null);
-            var componentCvt = new TemplateComponentConverter(m_database, null);
-            var behaviourCvt = new TemplateBehaviourConverter(m_database, null);
-            serializer.Converters.Add(tcompListCvt);
-            serializer.Converters.Add(tbehaListCvt);
-            serializer.Converters.Add(componentCvt);
-            serializer.Converters.Add(behaviourCvt);
+            TemplateUtil.PushConverters(serializer, m_database, null);
 
             writer.WriteStartObject();
             writer.WritePropertyName("name");    writer.WriteValue(value.Name);
             writer.WritePropertyName("extends"); writer.WriteValue(value.Base);
-            
-            // COMPONENTS
-
+            // Write the components.
             if (CountSerializableComponents(value) > 0)
             {
                 writer.WritePropertyName("components");
@@ -78,9 +95,7 @@ namespace Rogue.Coe.Serialization
                 var list = prop.GetValue(value);
                 serializer.Serialize(writer, list);
             }
-
-            // BEHAVIOURS
-
+            // Write the behaviours.
             if (CountSerializableBehaviours(value) > 0)
             {
                 writer.WritePropertyName("behaviours");
@@ -88,30 +103,30 @@ namespace Rogue.Coe.Serialization
                 var list = prop.GetValue(value);
                 serializer.Serialize(writer, list);
             }
-
-            // VIEW
-
+            // Write the view.
             if (value.GetViewInfo() != null)
             {
                 writer.WritePropertyName("view");
                 serializer.Serialize(writer, value.GetViewInfo());
             }
-
+            // Done.
             writer.WriteEndObject();
 
-            serializer.Converters.Remove(tcompListCvt);
-            serializer.Converters.Remove(tbehaListCvt);
-            serializer.Converters.Remove(componentCvt);
-            serializer.Converters.Remove(behaviourCvt);
+            TemplateUtil.PopConverters(serializer);
         }
 
+        /// <summary>
+        /// Get the number of serializable components in a template.
+        /// </summary>
+        /// <param name="template">Template.</param>
+        /// <returns>Number of serializable components.</returns>
         private static int CountSerializableComponents(Template template)
         {
             int count = 0;
 
             for (int i = 0; i < template.ComponentCount; i++)
             {
-                if (!template.GetComponentInfo(i).Inherited)
+                if (!template.GetComponentInfo(i).IsInherited)
                 {
                     count++;
                 }
@@ -120,6 +135,11 @@ namespace Rogue.Coe.Serialization
             return count;
         }
 
+        /// <summary>
+        /// Gets the number of serializable behaviours in a template.
+        /// </summary>
+        /// <param name="template">Template.</param>
+        /// <returns>Number of serializable behaviours.</returns>
         private static int CountSerializableBehaviours(Template template)
         {
             int count = 0;

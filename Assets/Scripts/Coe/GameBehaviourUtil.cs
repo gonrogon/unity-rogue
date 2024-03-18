@@ -47,7 +47,7 @@ namespace Rogue.Coe
         /// <param name="name">Name.</param>
         /// <param name="type">Type of behaviour.</param>
         /// <returns>True on success; otherwise, false.</returns>
-        private static bool TryGetBehaviour(string name, out Type type)
+        public static bool TryGetBehaviour(string name, out Type type)
         {
             type = null;
 

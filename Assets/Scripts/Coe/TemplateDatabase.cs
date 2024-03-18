@@ -2,81 +2,64 @@
 
 namespace Rogue.Coe
 {
+    /// <summary>
+    /// Defines a database for the templates.
+    /// </summary>
     public class TemplateDatabase
     {
+        /// <summary>
+        /// Dictionary with the templates.
+        /// </summary>
         private readonly Dictionary<string, Template> m_templates = new ();
 
         /// <summary>
-        /// Gets a list with the names of all the templates.
+        /// Gets a list with the names of all loaded templates.
         /// </summary>
         /// <returns>List.</returns>
         public List<string> GetTemplateNames() => new (m_templates.Keys);
 
-        public Template Find(string name)
-        {
-            if (m_templates.TryGetValue(name, out Template template))
-            {
-                return template;
-            }
+        /// <summary>
+        /// Finds a template.
+        /// </summary>
+        /// <param name="name">Name of the template.</param>
+        /// <returns>Reference to the template if it exists; otherwise, null.</returns>
+        public Template Find(string name) => m_templates.TryGetValue(name, out var template) ? template : null;
 
-            return null;
-        }
+        /// <summary>
+        /// Tries to get a template.
+        /// </summary>
+        /// <param name="name">Name.</param>
+        /// <param name="template">Template.</param>
+        /// <returns>True on success; otherwise, false.</returns>
+        public bool TryGet(string name, out Template template) => m_templates.TryGetValue(name, out template);
 
-        public bool TryGet(string name, out Template template)
-        {
-            return m_templates.TryGetValue(name, out template);
-        }
-
-        public bool Add(Template template)
+        /// <summary>
+        /// Adds a template.
+        /// </summary>
+        /// <param name="template">Template to add.</param>
+        public void Add(Template template)
         {
             if (template == null)
             {
-                return false;
+                throw new System.ArgumentNullException("template", "template to add can not be null");
             }
 
             m_templates[template.Name] = template;
-
-            return true;
-        }
-        /*
-        public bool Load(string file)
-        {
-            Template template = TemplateSerializer.LoadFromFile(file);
-
-            if (template == null)
-            {
-                Debug.LogError($"Unable to load template from \"{file}\"");
-                return false;
-            }
-
-            if (m_templates.ContainsKey(template.Name))
-            {
-                Debug.LogWarning($"Unable to load template, template name \"{template.Name}\" already exists");
-                return false;
-            }
-
-            if (template != null)
-            {
-                m_templates.Add(template.Name, template);
-            }
-
-            return true;
-        }
-        */
-        public bool LoadFromText(string text)
-        {
-            if (Serialization.TemplateSerializer.LoadDatabaseFromText(text, this) == null)
-            {
-                return false;
-            }
-
-            return true;
         }
 
-        public void Save(string file)
-        {
-            Serialization.TemplateSerializer.SaveDatabaseToFile(file, this);
-        }
+        /// <summary>
+        /// Load the database from a file.
+        /// </summary>
+        /// <param name="file">File to load.</param>
+        /// <returns>True on success; otherwise, false.</returns>
+        public bool LoadFromFile(string file) => Serialization.TemplateSerializer.LoadDatabaseFromFile(file, this) != null;
+
+        /// <summary>
+        /// Loads the database from a text.
+        /// </summary>
+        /// <param name="text">Text to load.</param>
+        /// <returns>True on success; otherwise, false.</returns>
+        public bool LoadFromText(string text) => Serialization.TemplateSerializer.LoadDatabaseFromText(text, this) != null;
 
         public void Compile()
         {

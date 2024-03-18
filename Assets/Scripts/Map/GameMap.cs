@@ -32,10 +32,10 @@ namespace Rogue.Map
 
         //private IdentBagMap m_bags = new();
 
-        private BagMap<GameMapItem> m_items = new();
+        private BagMap<Ident, GameMapItem> m_items = new();
 
         //private List<IdentValuePair<Ident, > m_multicellItems = new();
-        private Bag<IMulticell> m_multicells = new();
+        private Bag<Ident, IMulticell> m_multicells = new();
 
         private Grid<Cell> m_cells;
 
@@ -310,7 +310,7 @@ namespace Rogue.Map
             {
                 var pair = m_multicells.At(i);
 
-                if (pair.value.ContainsCoord(pair.ident, coord))
+                if (pair.Value.ContainsCoord(pair.Key, coord))
                 {
                     count++;
                 }
@@ -364,7 +364,7 @@ namespace Rogue.Map
                 return false;
             }
 
-            eid = pair.ident;
+            eid = pair.Key;
             return true;
         }
 
@@ -377,11 +377,11 @@ namespace Rogue.Map
             {
                 var pair = m_multicells.At(i);
 
-                if (pair.value.ContainsCoord(pair.ident, coord))
+                if (pair.Value.ContainsCoord(pair.Key, coord))
                 {
                     if (count == nth)
                     {
-                        eid = pair.ident;
+                        eid = pair.Key;
                         return true;
                     }
 
@@ -517,9 +517,9 @@ namespace Rogue.Map
             {
                 var pair = m_multicells.At(i);
 
-                if (pair.value.ContainsCoord(pair.ident, coord))
+                if (pair.Value.ContainsCoord(pair.Key, coord))
                 {
-                    action(pair.ident);
+                    action(pair.Key);
                 }
             }
         }
@@ -650,13 +650,13 @@ namespace Rogue.Map
 
         private void ImplRemoveMulticell(Ident eid, bool notify)
         {
-            int index = m_multicells.FindIndex(eid);
+            int index = m_multicells.FindFirst(eid);
             if (index < 0)
             {
                 return;
             }
 
-            Vec2i origin = m_multicells.At(index).value.GetOrigin();
+            Vec2i origin = m_multicells.At(index).Value.GetOrigin();
                            m_multicells.Remove(index);
 
             if (notify)

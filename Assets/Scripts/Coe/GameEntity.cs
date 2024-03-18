@@ -162,13 +162,30 @@ namespace Rogue.Coe
 
         public T FindLastComponent<T>() where T : IGameComponent => m_components.FindLast<T>();
 
-        public void AddComponent<T>() where T : IGameComponent, new() => m_components.Add<T>();
+        public void AddComponent<T>() where T : IGameComponent, new() =>  AddComponent(new T());
 
-        public void AddComponent(IGameComponent component) => m_components.Add(component);
+        public void AddComponent(IGameComponent component) 
+        {
+            IGameComponent gc = m_components.Add(component);
+            if (gc != null)
+            {
+                World.OnComponentAdded(this, gc);
+            }
+        }
 
-        public void RemoveComponent<T>(int nth) => m_components.Remove<T>(nth);
+        public void RemoveComponent<T>(int nth)
+        {
+            IGameComponent gc = m_components.Remove<T>(nth);
+            if (gc != null)
+            {
+                World.OnComponentRemoved(this, gc);
+            }
+        }
 
-        public void RemoveAllComponents<T>() => m_components.RemoveAll<T>();
+        public void RemoveAllComponents<T>()
+        {
+            m_components.RemoveAll<T>(gc => World.OnComponentRemoved(this, gc));
+        }
 
         #endregion
 
@@ -205,25 +222,75 @@ namespace Rogue.Coe
 
         #endregion
 
-        // ----------
-        // Behaviours
-        // ----------
+        #region @@@ BEHAVIOURS @@@
 
+        /// <summary>
+        /// Checks if the entity contains a behaviour.
+        /// </summary>
+        /// <typeparam name="T">Type of behaviour to check.</typeparam>
+        /// <returns>True if the entity contains the behaviour; otherwise, null.</returns>
         public bool ContainsBehaviour<T>() where T : IGameBehaviour => m_behaviours.Contains<T>();
 
+        /// <summary>
+        /// Finds a behaviour.
+        /// </summary>
+        /// <typeparam name="T">Type of behaviour to find.</typeparam>
+        /// <returns>Reference to the behaviour  if it is found; otherwise, null.</returns>
         public T FindBehaviour<T>() where T : IGameBehaviour => m_behaviours.Find<T>();
 
-        public void AddBehaviour<T>() where T : IGameBehaviour, new() => m_behaviours.Add<T>();
+        /// <summary>
+        /// Adds a new behaviour.
+        /// </summary>
+        /// <typeparam name="T">Type of behaviour to add.</typeparam>
+        public void AddBehaviour<T>() where T : IGameBehaviour, new() => AddBehaviour(new T());
 
-        public void AddBehaviour(IGameBehaviour behaviour) => m_behaviours.Add(behaviour);
+        /// <summary>
+        /// Adds a behaviour.
+        /// </summary>
+        /// <param name="behaviour">Behaviour to add.</param>
+        public void AddBehaviour(IGameBehaviour behaviour)
+        {
+            IGameBehaviour gb = m_behaviours.Add(behaviour);
+            if (gb != null)
+            {
+                World.OnBehaviourAdded(this, gb);
+            }
+        }
 
-        public void RemoveBehaviour<T>() => m_behaviours.Remove<T>();
+        /// <summary>
+        /// Removes a behaviour.
+        /// </summary>
+        /// <typeparam name="T">Type of behaviour to remove.</typeparam>
+        public void RemoveBehaviour<T>()
+        {
+            IGameBehaviour gb = m_behaviours.Remove<T>();
+            if (gb != null)
+            {
+                World.OnBehaviourRemoved(this, gb);
+            }
+        }
+
+        #endregion
 
         // ----
         // View
         // ----
 
         public bool ContainsView() => m_view != null;
+
+        public void SetView(string type)
+        {
+            IGameView view = GameViewUtil.Create(type, null);
+
+            SetView(view);
+        }
+
+        public void SetView(string type, string name)
+        {
+            IGameView view = GameViewUtil.Create(type, name);
+
+            SetView(view);
+        }
 
         public void SetView(IGameView view)
         {
@@ -233,22 +300,6 @@ namespace Rogue.Coe
             {
                 m_view.OnSetup(World, this);
             }
-        }
-
-        // TODO: Remove
-        public void SetView(string type)
-        {
-            IGameView view = GameViewUtil.Create(type, null);
-
-            SetView(view);
-        }
-
-        // TODO: Remove
-        public void SetView(string type, string name)
-        {
-            IGameView view = GameViewUtil.Create(type, name);
-
-            SetView(view);
         }
 
         public void RemoveView()
