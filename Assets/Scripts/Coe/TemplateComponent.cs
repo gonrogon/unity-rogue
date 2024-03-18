@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Collections.Generic;
 
 namespace Rogue.Coe
 {
@@ -40,6 +41,12 @@ namespace Rogue.Coe
         /// </summary>
         [JsonProperty(Order = 0)]
         public IGameComponent component = null;
+
+        /// <summary>
+        /// List with the properties changed in the component.
+        /// </summary>
+        [JsonIgnore]
+        public List<string> changes = null;
 
         //public bool IsOverride => Override != TemplateOverride.None;
 
@@ -91,7 +98,7 @@ namespace Rogue.Coe
             */
         };
 
-        public static TemplateComponent CreateFlyweight(IGameComponent component, bool inherited) => new (component, TemplateFlag.Flyweight | (inherited ? TemplateFlag.OverrideReplace : TemplateFlag.None))
+        public static TemplateComponent CreateFlyweight(IGameComponent component, bool inherited) => new (component, TemplateFlag.Flyweight | (inherited ? TemplateFlag.Inherited : TemplateFlag.None))
         {
             /*
             component     = component,

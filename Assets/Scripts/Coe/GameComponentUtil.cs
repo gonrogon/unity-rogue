@@ -9,7 +9,32 @@ namespace Rogue.Coe
         /// <summary>
         /// Cache of components.
         /// </summary>
-        public static Dictionary<string, Type> mCache = new Dictionary<string, Type>();
+        public static Dictionary<string, Type> mCache = new ();
+
+        /// <summary>
+        /// Sets the value of a public field or property from a source component to target component.
+        /// </summary>
+        /// <typeparam name="T">Type of component.</typeparam>
+        /// <param name="name">Name of the field or property.</param>
+        /// <param name="source">Source component.</param>
+        /// <param name="target">Target component.</param>
+        public static void SetValue<T>(string name, T source, T target) where T : IGameComponent
+        {
+            MemberInfo[] found = typeof(T).GetMember(name, BindingFlags.Public);
+            if (found.Length <= 0)
+            {
+                return;
+            }
+
+            foreach (MemberInfo info in found)
+            {
+                switch (info.MemberType)
+                {
+                    case MemberTypes.Field:    { ((FieldInfo)info)   .SetValue(target, ((FieldInfo)info)   .GetValue(source)); } return;
+                    case MemberTypes.Property: { ((PropertyInfo)info).SetValue(target, ((PropertyInfo)info).GetValue(source)); } return;
+                }
+            }
+        }
 
         /// <summary>
         /// Create a component from a component name.
@@ -42,15 +67,13 @@ namespace Rogue.Coe
         }
 
         /// <summary>
-        /// Try to get a component type.
+        /// Tries to get a component type.
         /// </summary>
         /// <param name="name">Name.</param>
         /// <param name="type">Type of component.</param>
         /// <returns>True on success; otherwise, false.</returns>
         public static bool TryGetComponent(string name, out Type type)
         {
-            type = null;
-
             if (!mCache.TryGetValue(name, out type))
             {
                 if (TryGetComponentInDomain(name, out type))
@@ -63,7 +86,7 @@ namespace Rogue.Coe
         }
 
         /// <summary>
-        /// Try to get a component type from current domain.
+        /// Tries to get a component type from current domain.
         /// </summary>
         /// <param name="name">Name.</param>
         /// <param name="type">Type of component.</param>
@@ -86,7 +109,7 @@ namespace Rogue.Coe
         }
 
         /// <summary>
-        /// Try to get a component type from an assembly.
+        /// Tries to get a component type from an assembly.
         /// </summary>
         /// <param name="assembly">Assembly.</param>
         /// <param name="name">Name.</param>

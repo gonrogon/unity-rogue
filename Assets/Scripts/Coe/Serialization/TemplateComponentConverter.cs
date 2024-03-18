@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Reflection;
 
 namespace Rogue.Coe.Serialization
 {
@@ -74,6 +75,22 @@ namespace Rogue.Coe.Serialization
 
             if (tc != null)
             { 
+                if (jarray.Count > 1)
+                {
+                    JObject jobj = jarray[1].ToObject<JObject>();
+
+                    if (jobj.HasValues)
+                    {
+                        tc.changes = new ();
+
+                        foreach (JProperty property in jobj.Properties())
+                        {
+                            tc.changes.Add(property.Name);
+                            UnityEngine.Debug.Log($"Property changed {m_template.Name}/{name}/{property.Name}");
+                        }
+                    }
+                }
+
                 if (tc.component == null)
                 {
                     tc.component = serializer.Deserialize<IGameComponent>(jarray.CreateReader());
@@ -81,6 +98,37 @@ namespace Rogue.Coe.Serialization
                 else
                 {
                     serializer.Populate(jarray[1].CreateReader(), tc.component);
+                }
+
+                if (tc.IsOverrided)
+                {
+                    UnityEngine.Debug.Log($">>> IS OVERRIDE {m_template.Name}/{name}");
+
+                    var type = tc.component.GetType();
+
+                    if (tc.changes.Count > 0)
+                    {
+                        foreach (string member in tc.changes)
+                        {
+                            MemberInfo[] infos = type.GetMember(member);
+
+                            if (infos.Length > 0)
+                            {
+                                UnityEngine.Debug.Log($"    FOUND {infos[0].Name}");
+                                
+                                if (infos[0].MemberType == MemberTypes.Field)
+                                {
+                                    UnityEngine.Debug.Log($"        Set value {((FieldInfo)infos[0]).GetValue(tc.component)}");
+                                    //((FieldInfo)infos[0]).SetValue(tc.component, ((FieldInfo)infos[0]).GetValue(tc.component));
+                                }
+
+                                if (infos[0].MemberType == MemberTypes.Property)
+                                {
+                                    UnityEngine.Debug.Log($"        Set value {((PropertyInfo)infos[0]).GetValue(tc.component)}");
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
