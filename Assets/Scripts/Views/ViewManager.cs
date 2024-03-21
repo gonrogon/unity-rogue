@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.Coe;
-using Rogue.Coe;
+﻿using Rogue.Coe;
 using UnityEngine;
 
 namespace Rogue.Views
@@ -69,7 +68,7 @@ namespace Rogue.Views
 
         private void SetView(GameEntity entity)
         {
-            if (entity == null ||entity.ContainsView())
+            if (entity.ContainsView())
             {
                 return;
             }
@@ -80,12 +79,15 @@ namespace Rogue.Views
                 return;
             }
 
-            entity.SetView(view.type, view.name);
+            string type = string.IsNullOrEmpty(view.type) ? null : char.ToUpper(view.type[0]) + view.type[1..];
+            string name = string.IsNullOrEmpty(view.name) ? null : char.ToUpper(view.name[0]) + view.name[1..];
+
+            entity.SetView(type, name);
         }
 
         private void RemoveView(GameEntity entity)
         {
-            entity?.RemoveView();
+            entity.RemoveView();
         }
 
         #endregion

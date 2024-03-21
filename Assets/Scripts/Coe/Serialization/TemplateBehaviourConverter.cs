@@ -9,6 +9,8 @@ namespace Rogue.Coe.Serialization
     /// </summary>
     public class TemplateBehaviourConverter : JsonConverter<TemplateBehaviour>
     {
+        public override bool CanWrite => false;
+
         /// <summary>
         /// Template database.
         /// </summary>
@@ -31,30 +33,44 @@ namespace Rogue.Coe.Serialization
 
         public override TemplateBehaviour ReadJson(JsonReader reader, Type objectType, TemplateBehaviour existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            var jtoken = serializer.Deserialize<JToken>(reader);
-            TemplateBehaviour tb = null;
+            JToken jtoken = serializer.Deserialize<JToken>(reader);
+            TemplateBehaviour tb;
 
-            if (TemplateUtil.ParseBehaviourName((string)jtoken, out string name, out var @override))
+            if (hasExistingValue)
             {
-                if (GameBehaviourUtil.TryGetBehaviour(name, out _))
-                {
-                    tb = m_template.OverrideBehaviour(name, @override);
-                }
-                else
+                tb = existingValue;
+            }
+            else
+            {
+                tb = TemplateBehaviour.Create(null, false);
+            }
+
+            if (TemplateUtil.ParseBehaviourName((string)jtoken, out string name, out TemplateFlag flags))
+            {
+                tb.Flags |= flags;
+
+                if (!GameBehaviourUtil.TryGetBehaviour(name, out _))
                 {
                     #if UNITY_2017_1_OR_NEWER
                         UnityEngine.Debug.LogError($"Unable to create behaviour {name} in template {m_template.Name}, behaviour type not found");
                     #endif
+
+                    return null;
                 }
             }
-
-            if (tb != null)
+            else
             {
-                // Template behaviour does not instantiate the behaviours theirself, instead the keep the name of the
-                // behaviours to instantiate when an entity is created.
-            }
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.LogError($"Unable to create behaviour {name} in template {m_template.Name}, invalid behaviour name");
+                #endif
 
-            return null;
+                return null;
+            }
+            // Template behaviours do not instantiate the behaviours theirself, instead they keep the name (type) of the
+            // behaviours to instantiate when an entity is created.
+            tb.behaviour = name;
+
+            return tb;
         }
 
         public override void WriteJson(JsonWriter writer, TemplateBehaviour value, JsonSerializer serializer)

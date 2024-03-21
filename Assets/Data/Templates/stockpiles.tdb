@@ -4,7 +4,7 @@
         "components": [
             ["name", { "name": "stockpile", "description": "stockpile to store different items"}],
             ["stockpile"],
-            ["view", {"type": "ViewStockpile", "mapOnly": false}]
+            ["view", {"type": "viewStockpile", "mapOnly": false}]
         ]
     }
 ]

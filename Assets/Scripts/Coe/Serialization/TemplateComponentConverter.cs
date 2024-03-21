@@ -34,111 +34,8 @@ namespace Rogue.Coe.Serialization
 
         public override TemplateComponent ReadJson(JsonReader reader, Type objectType, TemplateComponent existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            if (reader.TokenType == JsonToken.StartObject)
-            {
-                return ReadJsonObj(reader, objectType, existingValue, hasExistingValue, serializer);
-            }
-
-            if (reader.TokenType == JsonToken.StartArray)
-            {
-                return ReadJsonArray(reader, objectType, existingValue, hasExistingValue, serializer);
-            }
-
-            return null;            
-        }
-
-        public TemplateComponent ReadJsonArray(JsonReader reader, Type objectType, TemplateComponent existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            var jarray = serializer.Deserialize<JArray>(reader);
-            TemplateComponent tc = null;
-
-            if (TemplateUtil.ParseComponentName((string)jarray[0], out string name, out bool flyweight, out var @override, out int overrideIndex))
-            {
-                if (GameComponentUtil.TryGetComponent(name, out Type type))
-                {
-                    if (flyweight)
-                    {
-                        tc = m_template.OverrideFlyweight(type, @override, overrideIndex);
-                    }
-                    else
-                    {
-                        tc = m_template.OverrideComponent(type, @override, overrideIndex);
-                    }
-                }
-                else
-                {
-                    #if UNITY_2017_1_OR_NEWER
-                        UnityEngine.Debug.LogError($"Unable to create component {name} in template {m_template.Name}, component type not found");
-                    #endif
-                }
-            }
-
-            if (tc != null)
-            { 
-                if (jarray.Count > 1)
-                {
-                    JObject jobj = jarray[1].ToObject<JObject>();
-
-                    if (jobj.HasValues)
-                    {
-                        tc.changes = new ();
-
-                        foreach (JProperty property in jobj.Properties())
-                        {
-                            tc.changes.Add(property.Name);
-                            UnityEngine.Debug.Log($"Property changed {m_template.Name}/{name}/{property.Name}");
-                        }
-                    }
-                }
-
-                if (tc.component == null)
-                {
-                    tc.component = serializer.Deserialize<IGameComponent>(jarray.CreateReader());
-                }
-                else
-                {
-                    serializer.Populate(jarray[1].CreateReader(), tc.component);
-                }
-
-                if (tc.IsOverrided)
-                {
-                    UnityEngine.Debug.Log($">>> IS OVERRIDE {m_template.Name}/{name}");
-
-                    var type = tc.component.GetType();
-
-                    if (tc.changes.Count > 0)
-                    {
-                        foreach (string member in tc.changes)
-                        {
-                            MemberInfo[] infos = type.GetMember(member);
-
-                            if (infos.Length > 0)
-                            {
-                                UnityEngine.Debug.Log($"    FOUND {infos[0].Name}");
-                                
-                                if (infos[0].MemberType == MemberTypes.Field)
-                                {
-                                    UnityEngine.Debug.Log($"        Set value {((FieldInfo)infos[0]).GetValue(tc.component)}");
-                                    //((FieldInfo)infos[0]).SetValue(tc.component, ((FieldInfo)infos[0]).GetValue(tc.component));
-                                }
-
-                                if (infos[0].MemberType == MemberTypes.Property)
-                                {
-                                    UnityEngine.Debug.Log($"        Set value {((PropertyInfo)infos[0]).GetValue(tc.component)}");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public TemplateComponent ReadJsonObj(JsonReader reader, Type objectType, TemplateComponent existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            JObject jobj = serializer.Deserialize<JObject>(reader);
-            TemplateComponent tc = null;
+            JArray jarray = serializer.Deserialize<JArray>(reader);
+            TemplateComponent tc;
 
             if (hasExistingValue)
             {
@@ -146,28 +43,48 @@ namespace Rogue.Coe.Serialization
             }
             else
             {
-                if (TemplateUtil.ParseComponentName((string)jobj["component"][0], out string name, out bool flyweight, out var @override, out int overrideIndex))
+                tc = TemplateComponent.Create(null, false);
+            }
+            // Get the information about the type of component and the parameters for the template component.
+            if (TemplateUtil.ParseComponentName((string)jarray[0], out string name, out TemplateFlag flags, out int overrideIndex))
+            {
+                tc.Flags         |= flags;
+                tc.OverrideIndex  = overrideIndex;
+
+                if (!GameComponentUtil.TryGetComponent(name, out Type type))
                 {
-                    if (GameComponentUtil.TryGetComponent(name, out Type type))
+                    #if UNITY_2017_1_OR_NEWER
+                        UnityEngine.Debug.LogError($"Unable to create component {name} in template {m_template.Name}, component type not found");
+                    #endif
+
+                    return null;
+                }
+            }
+            else
+            {
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.LogError($"Unable to create component {name} in template {m_template.Name}, invalid component name");
+                #endif
+
+                return null;
+            }
+            // Get the list of fields and properties of the component that have been modified.
+            if (jarray.Count > 1)
+            {
+                JObject jobj = jarray[1].ToObject<JObject>();
+
+                if (jobj.HasValues)
+                {
+                    foreach (JProperty property in jobj.Properties())
                     {
-                        if (flyweight)
-                        {
-                            tc = m_template.OverrideFlyweight(type, @override, overrideIndex);
-                        }
-                        else
-                        {
-                            tc = m_template.OverrideComponent(type, @override, overrideIndex);
-                        }
+                        tc.RecordChange(property.Name);
                     }
                 }
             }
+            // Deserialize the component.
+            tc.component = serializer.Deserialize<IGameComponent>(jarray.CreateReader());
 
-            if (tc != null)
-            { 
-                serializer.Populate(jobj.CreateReader(), tc);
-            }
-
-            return null;
+            return tc;
         }
 
         public override void WriteJson(JsonWriter writer, TemplateComponent value, JsonSerializer serializer)

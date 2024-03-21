@@ -1,7 +1,5 @@
 ﻿using Rogue.Core;
 using Rogue.Coe;
-using Assets.Scripts.Coe;
-using System.Diagnostics;
 
 namespace Rogue.Game
 {

@@ -6,12 +6,16 @@ namespace Rogue.Coe.Serialization
 {
     public class GameBehaviourConverter : JsonConverter<IGameBehaviour>
     {
+        public override bool CanRead => false;
+
         public override bool CanWrite => false;
 
         public override IGameBehaviour ReadJson(JsonReader reader, Type objectType, IGameBehaviour existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            JObject        jobj = serializer.Deserialize<JObject>(reader);
-            IGameBehaviour beha = null;
+            throw new NotImplementedException();
+            /*
+            JObject jobj = serializer.Deserialize<JObject>(reader);
+            IGameBehaviour beha;
             // Creates a new component if it is needed.
             if (hasExistingValue)
             {
@@ -29,6 +33,7 @@ namespace Rogue.Coe.Serialization
             
             serializer.Populate(jobj.CreateReader(), beha);
             return beha;
+            */
         }
 
         public override void WriteJson(JsonWriter writer, IGameBehaviour value, JsonSerializer serializer)

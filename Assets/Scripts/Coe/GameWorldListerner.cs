@@ -1,7 +1,4 @@
-﻿using Rogue.Coe;
-using Rogue.Core;
-
-namespace Assets.Scripts.Coe
+﻿namespace Rogue.Coe
 {
     public interface IGameWorldListerner
     {

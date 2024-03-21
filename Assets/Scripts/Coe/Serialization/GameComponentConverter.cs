@@ -8,15 +8,7 @@ namespace Rogue.Coe.Serialization
 {
     public class GameComponentConverter : JsonConverter<IGameComponent>
     {
-        private bool m_preprocessed = false;
-
-        public override bool CanWrite
-        {
-            get
-            {
-                return !m_preprocessed;
-            }
-        }
+        public override bool CanWrite => false;
 
         public override IGameComponent ReadJson(JsonReader reader, Type objectType, IGameComponent existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
@@ -32,23 +24,38 @@ namespace Rogue.Coe.Serialization
                 if (TemplateUtil.ParseComponentName((string)jarray[0], out string name))
                 {
                     comp = GameComponentUtil.CreateFromName(name);
+
+                    if (comp == null)
+                    {
+                        #if UNITY_2017_1_OR_NEWER
+                            UnityEngine.Debug.LogWarning($"Unable to create component \"{name}\", component type not found");
+                        #endif
+
+                        return null;
+                    }
                 }
                 else
                 {
-                    comp = null;
+                    #if UNITY_2017_1_OR_NEWER
+                        UnityEngine.Debug.LogWarning($"Unable to read component \"{name}\", invalid component name");
+                    #endif
+
+                    return null;
                 }
             }
-            // Read the component data.
-            if (comp != null && jarray.Count > 1)
+            // Populate the already created component with the JSON data.
+            if (jarray.Count > 1)
             {
                 serializer.Populate(jarray[1].CreateReader(), comp);
             }
-            // Done.
+
             return comp;
         }
 
         public override void WriteJson(JsonWriter writer, IGameComponent value, JsonSerializer serializer)
         {
+            throw new NotImplementedException();
+            /*
             m_preprocessed = true;
 
             writer.WriteStartArray();
@@ -59,6 +66,7 @@ namespace Rogue.Coe.Serialization
             writer.WriteEndArray();
 
             m_preprocessed = false;
+            */
         }
     }
 }

@@ -56,7 +56,11 @@ namespace Rogue.Coe.Serialization
                 }
                 // Try to convert the behaviour. Note that the template behaviours are converted using a custom
                 // converter, this converter returns null because it adds the behaviours automatically to the template.
-                TemplateBehaviour tb = serializer.Deserialize<TemplateBehaviour>(token.CreateReader());
+                var tb = serializer.Deserialize<TemplateBehaviour>(token.CreateReader());
+                if (tb != null)
+                {
+                    list.Add(tb);
+                }
             }
 
             return list;
@@ -68,7 +72,7 @@ namespace Rogue.Coe.Serialization
             {
                 for (int i = 0; i < value.Count; i++)
                 {
-                    if (value[i].Inherited)
+                    if (value[i].IsInherited)
                     {
                         continue;
                     }

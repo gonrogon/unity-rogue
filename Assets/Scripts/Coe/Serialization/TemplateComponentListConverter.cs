@@ -56,7 +56,11 @@ namespace Rogue.Coe.Serialization
                 }
                 // Try to convert the component. Note that the template components are converted using a custom
                 // converter, this converter returns null because it adds the components automatically to the template.
-                serializer.Deserialize<TemplateComponent>(token.CreateReader());
+                var tc = serializer.Deserialize<TemplateComponent>(token.CreateReader());
+                if (tc != null)
+                {
+                    list.Add(tc);
+                }
             }
 
             return list;

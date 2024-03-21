@@ -6,66 +6,40 @@ namespace Rogue.Coe
     /// <summary>
     /// Defines a template behavior.
     /// </summary>
-    public class TemplateBehaviour
+    public class TemplateBehaviour : TemplateMember
     {
-        /// <summary>
-        /// Flag indicating whether the behaviour was inherited from other template or not.
-        /// </summary>
-        [JsonIgnore]
-        public bool Inherited { get; set; } = false;
-
-        /// <summary>
-        /// Flag indicating whether the behaviour overwrites the values of a component in a base template or not.
-        /// </summary>
-        public TemplateOverride Override { get; set; } = TemplateOverride.None;
-
-        [JsonIgnore]
-        public int OverrideState { get; set; } = 0;
-
         /// <summary>
         /// Behavior type.
         /// </summary>
         public string behaviour = null;
 
         /// <summary>
-        /// Flag indicating whether template behaviour is a remove or not.
+        /// Creates a template behaviour for a behaviour.
         /// </summary>
-        public bool IsRemove => Override == TemplateOverride.Remove;
+        /// <param name="behaviour">Type of behaviour.</param>
+        /// <param name="inherited">Flag indicating whether the component was inherited or not.</param>
+        /// <returns>Template behaviour.</returns>
+        public static TemplateBehaviour Create(string behaviour, bool inherited)
+        {
+            return new ()
+            {
+                Flags     = inherited ? TemplateFlag.Inherited : TemplateFlag.None,
+                behaviour = behaviour
+            };
+        }
 
         /// <summary>
-        /// Creates a new template behaviour.
+        /// Clones the template behaviour as an inherited template behaviour.
         /// </summary>
-        /// <param name="component">Type of behaviour.</param>
-        /// <returns>Template behaviour.</returns>
-        public static TemplateBehaviour CreateNew(string type) => new ()
+        /// <returns>Clone.</returns>
+        public TemplateBehaviour CloneAsInherited()
         {
-            behaviour = type,
-            Inherited = false,
-            Override  = TemplateOverride.None
-        };
-
-        /// <summary>
-        /// Creates an inherited template behaviour.
-        /// </summary>
-        /// <param name="component">Type of behaviour.</param>
-        /// <returns>Template behaviour.</returns>
-        public static TemplateBehaviour CreateInherited(string type) => new ()
-        {
-            behaviour = type,
-            Inherited = true,
-            Override  = TemplateOverride.None
-        };
-
-        /// <summary>
-        /// Creates a remove template behaviour.
-        /// </summary>
-        /// <param name="type">Type of behaviour.</param>
-        /// <returns>Template behaviour.</returns>
-        public static TemplateBehaviour CreateRemove(string type) => new ()
-        {
-            behaviour = type,
-            Inherited = false,
-            Override  = TemplateOverride.Remove
-        };
+            return new ()
+            {
+                Flags         = TemplateFlag.Inherited,
+                OverrideIndex = OverrideIndex,
+                behaviour     = behaviour
+            };
+        }
     }
 }

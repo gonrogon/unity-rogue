@@ -5,7 +5,7 @@
             ["name", {"name": "market", "description": "market where to sell or buy items"}],
             ["building"],
             ["inventory"],
-            ["view", {"type": "ViewMarket", "mapOnly": false}]
+            ["view", {"type": "viewMarket", "mapOnly": false}]
         ],
         "behaviours": [
             "name", "placeable", "market"

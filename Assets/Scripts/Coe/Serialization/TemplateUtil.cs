@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Rogue.Core.Serialization;
 
 namespace Rogue.Coe.Serialization
 {
@@ -13,15 +12,15 @@ namespace Rogue.Coe.Serialization
 
         private const char CharFlyweight = '_';
 
-        private const TemplateOverride DefaultOverride = TemplateOverride.Replace;
+        private const TemplateFlag DefaultOverrideFlag = TemplateFlag.OverrideReplace;
 
-        private static TemplateComponentListConverter _tplCompListCvt = new ();
+        private static readonly TemplateComponentListConverter _tplCompListCvt = new ();
 
-        private static TemplateBehaviourListConverter _tplBehaListCvt = new ();
+        private static readonly TemplateBehaviourListConverter _tplBehaListCvt = new ();
 
-        private static TemplateComponentConverter _tplCompCvt = new ();
+        private static readonly TemplateComponentConverter _tplCompCvt = new ();
 
-        private static TemplateBehaviourConverter _tplBehaCvt = new ();
+        private static readonly TemplateBehaviourConverter _tplBehaCvt = new ();
 
         public static void PushConverters(JsonSerializer serializer, TemplateDatabase database, Template template)
         {
@@ -49,13 +48,12 @@ namespace Rogue.Coe.Serialization
             _tplBehaCvt.Reset(null, null);
         }
 
-        public static bool ParseComponentName(string str, out string name) => ParseComponentName(str, out name, out _, out _, out _);
+        public static bool ParseComponentName(string str, out string name) => ParseComponentName(str, out name, out _, out _);
 
-        public static bool ParseComponentName(string str, out string name, out bool flyweight, out TemplateOverride overrideType, out int overrideIndex)
+        public static bool ParseComponentName(string str, out string name, out TemplateFlag flags, out int overrideIndex)
         {
             name          = null;
-            flyweight     = false;
-            overrideType  = TemplateOverride.None;
+            flags         = TemplateFlag.None;
             overrideIndex = -1;
 
             int nameBeg = -1;
@@ -74,13 +72,42 @@ namespace Rogue.Coe.Serialization
             // Read the prefix.
             switch (str[cur])
             {
-                case CharOverrideAdd:    { overrideType = TemplateOverride.None;   cur++; } break;
-                case CharOverrideRemove: { overrideType = TemplateOverride.Remove; cur++; } break;
+                case CharOverrideAdd:    { flags |= TemplateFlag.None;   cur++; } break;
+                case CharOverrideRemove: 
+                {
+                    flags |= TemplateFlag.OverrideRemove; 
+                    int indexBeg = cur + 1;
+                    int indexEnd = cur;
+                    // Read the index to remove.
+                    for (cur++; cur < str.Length;)
+                    {
+                        if (char.IsDigit(str[cur]))
+                        {
+                            indexEnd = cur;
+                            cur++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    // Parse the override index.
+                    if (indexEnd >= indexBeg)
+                    {
+                        overrideIndex = int.Parse(str.Substring(indexBeg, indexEnd - indexBeg + 1));
+                    }
+                    else
+                    {
+                        overrideIndex = -1;
+                    }
+                }
+                break;
+
                 case CharOverrideReplace: 
                 {
-                    overrideType = TemplateOverride.Replace;
+                    flags |= TemplateFlag.OverrideReplace;
                     int indexBeg = cur + 1;
-                    int indexEnd = cur + 1;
+                    int indexEnd = cur;
                     // Read the index to replace.
                     for (cur++; cur < str.Length;)
                     {
@@ -95,7 +122,7 @@ namespace Rogue.Coe.Serialization
                         }
                     }
                     // Parse the override index.
-                    if (indexEnd > indexBeg)
+                    if (indexEnd >= indexBeg)
                     {
                         overrideIndex = int.Parse(str.Substring(indexBeg, indexEnd - indexBeg + 1));
                     }
@@ -108,7 +135,7 @@ namespace Rogue.Coe.Serialization
                 // If there is no prefix character, the default override is applied.
                 default:
                 {
-                    overrideType = DefaultOverride;
+                    flags |= DefaultOverrideFlag;
                 }
                 break;
             }
@@ -143,7 +170,7 @@ namespace Rogue.Coe.Serialization
             {
                 nameBeg++;
                 nameEnd--;
-                flyweight = true;
+                flags |= TemplateFlag.Flyweight;
             }
             // Get final name.
             if (nameEnd > nameBeg)
@@ -154,10 +181,10 @@ namespace Rogue.Coe.Serialization
             return name != null;
         }
 
-        public static bool ParseBehaviourName(string str, out string name, out TemplateOverride overrideType)
+        public static bool ParseBehaviourName(string str, out string name, out TemplateFlag flags)
         {
-            name          = null;
-            overrideType  = TemplateOverride.None;
+            name  = null;
+            flags = TemplateFlag.None;
 
             int nameBeg = -1;
             int nameEnd = -1;
@@ -175,9 +202,9 @@ namespace Rogue.Coe.Serialization
             // Read the prefix.
             switch (str[cur])
             {
-                case CharOverrideAdd:     { overrideType = TemplateOverride.None;   cur++; } break;
-                case CharOverrideRemove:  { overrideType = TemplateOverride.Remove; cur++; } break;
-                case CharOverrideReplace: { overrideType = TemplateOverride.None;   cur++; } break;
+                case CharOverrideAdd:     { flags |= TemplateFlag.None;            cur++; } break;
+                case CharOverrideRemove:  { flags |= TemplateFlag.OverrideRemove;  cur++; } break;
+                case CharOverrideReplace: { flags |= TemplateFlag.OverrideReplace; cur++; } break;
             }
             // Find the beginning of the component name.
             for (; cur < str.Length; cur++)

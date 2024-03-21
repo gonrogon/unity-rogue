@@ -1,12 +1,10 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Converters;
-using System;
 using System.IO;
 
 namespace Rogue.Coe.Serialization
 {
-    public class TemplateSerializer
+    public static class TemplateSerializer
     {
         public static TemplateDatabase LoadDatabaseFromFile(string file, TemplateDatabase database)
         {
@@ -30,20 +28,6 @@ namespace Rogue.Coe.Serialization
             return serializer.Deserialize<TemplateDatabase>(reader);
         }
 
-        public static void SaveDatabaseToFile(string file, TemplateDatabase database)
-        {
-            using StreamWriter stream = new (file);
-            SaveDatabase(stream, database);
-        }
-
-        public static void SaveDatabase(TextWriter stream, TemplateDatabase database)
-        {
-                  JsonSerializer serializer = CreateSerializer(database);
-            using JsonTextWriter writer     = new (stream);
-
-            serializer.Serialize(writer, database);
-        }
-
         public static Template LoadTemplate(string file, TemplateDatabase database)
         {
             using StreamReader stream = new (file);
@@ -59,27 +43,14 @@ namespace Rogue.Coe.Serialization
             return serializer.Deserialize<Template>(reader);
         }
 
-        public static void SaveTemplate(string file, TemplateDatabase database, Template template)
-        {
-            using StreamWriter stream = new(file);
-
-            SaveTemplate(stream, database, template);
-        }
-
-        public static void SaveTemplate(TextWriter stream, TemplateDatabase database, Template template)
-        {
-                  JsonSerializer serializer = CreateSerializer(database);
-            using JsonTextWriter writer     = new (stream);
-
-            serializer.Serialize(writer, template);
-        }
-
         public static JsonSerializer CreateSerializer(TemplateDatabase database)
         {
-            JsonSerializer serializer = new ();
+            JsonSerializer serializer = new()
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                Formatting        = Formatting.Indented
+            };
 
-            serializer.NullValueHandling = NullValueHandling.Ignore;
-            serializer.Formatting        = Formatting.Indented;
             serializer.Converters.Add(new JavaScriptDateTimeConverter());
             serializer.Converters.Add(new Core.Serialization.MathConverter());
             serializer.Converters.Add(new TemplateDatabaseConverter(database));

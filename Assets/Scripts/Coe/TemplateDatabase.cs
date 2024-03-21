@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 
 namespace Rogue.Coe
 {
@@ -61,12 +62,19 @@ namespace Rogue.Coe
         /// <returns>True on success; otherwise, false.</returns>
         public bool LoadFromText(string text) => Serialization.TemplateSerializer.LoadDatabaseFromText(text, this) != null;
 
-        public void Compile()
+        public int Compile(Action<Template> onCompiled = null)
         {
+            int count = 0;
+
             foreach (var pair in m_templates)
             {
-                pair.Value.Compile(this);
+                if (pair.Value.CompileNew(this, onCompiled))
+                {
+                    count++;
+                }
             }
+
+            return count;
         }
     }
 }

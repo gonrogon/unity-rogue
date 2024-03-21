@@ -7,7 +7,7 @@
             ["life", {"max": 100, "initial": 100, "current": 100}],
             ["inventory"],
             ["body", {"template": "mob"}],
-            ["view", {"type": "ViewMob", "sprite": "enemy"}]
+            ["view", {"type": "viewMob", "sprite": "enemy"}]
         ],
         "behaviours": [
             "name", "life", "move", "builder", "farmer", "equip"

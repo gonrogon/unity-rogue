@@ -37,12 +37,7 @@ namespace Rogue.Coe
 
         public bool IsOverrideRemove => (Flags & TemplateFlag.OverrideRemove) != 0;
 
-        public TemplateMember() {}
-
-        public TemplateMember(TemplateFlag flags) 
-        {
-            Flags = flags;
-        }
+        protected TemplateMember() {}
 
         public void MarkAsInherited() => Flags |= TemplateFlag.Inherited;
 

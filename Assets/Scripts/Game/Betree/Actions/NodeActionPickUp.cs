@@ -25,6 +25,10 @@ namespace Rogue.Game.Betree
                 return NodeState.Success;
             }
 
+            #if DEBUG && UNITY_2017_1_OR_NEWER
+                UnityEngine.Debug.LogWarning($"Unable to pick up item {m_varWhat}");
+            #endif
+
             return NodeState.Failure;
         }
     }

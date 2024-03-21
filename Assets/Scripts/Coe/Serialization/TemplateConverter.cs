@@ -11,6 +11,8 @@ namespace Rogue.Coe.Serialization
     /// </summary>
     public class TemplateConverter : JsonConverter<Template>
     {
+        public override bool CanWrite => false;
+
         /// <summary>
         /// Database where to find references.
         /// </summary>
@@ -41,45 +43,20 @@ namespace Rogue.Coe.Serialization
 
                 return null;
             }
-            // Check for valid base template.
-            if (!string.IsNullOrEmpty(@base)) 
-            {
-                if (m_database == null)
-                {
-                    #if UNITY_2017_1_OR_NEWER
-                        UnityEngine.Debug.Log($"Template database not set, imposible to extended \"{name}\" with \"{@base}\"");
-                    #endif
-
-                    return null;
-                }
-
-                if (!m_database.TryGet(@base, out Template bt))
-                {
-                    #if UNITY_2017_1_OR_NEWER
-                        UnityEngine.Debug.LogError($"Base template not found, imposible to extend \"{name}\" with \"{@base}\"");
-                    #endif
-
-                    return null;
-                }
-
-                template.Extend(bt);
-            }
 
             TemplateUtil.PushConverters(serializer, m_database, template);
             serializer.Populate(jobj.CreateReader(), template);
             TemplateUtil.PopConverters(serializer);
-            // Removes all the components and behaviours marked for removal.
-            int rc = template.RemoveAllComponents(tc => tc.IsRemoved);
-            int rb = template.RemoveAllBehaviours(tb => tb.OverrideState == 1);
-
-            #if DEBUG && UNITY_2017_1_OR_NEWER
-                if (rc > 0) { UnityEngine.Debug.Log($"{rc} template components removed from template {template.Name}"); }
-                if (rb > 0) { UnityEngine.Debug.Log($"{rb} template behaviours removed from template {template.Name}"); }
-            #endif
 
             return template;
         }
 
+        public override void WriteJson(JsonWriter writer, Template value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException("template serialization not implemented");
+        }
+
+        /*
         public override void WriteJson(JsonWriter writer, Template value, JsonSerializer serializer)
         {
             TemplateUtil.PushConverters(serializer, m_database, null);
@@ -146,7 +123,7 @@ namespace Rogue.Coe.Serialization
 
             for (int i = 0; i < template.BehaviourCount; i++)
             {
-                if (!template.GetBehaviourInfo(i).Inherited)
+                if (!template.GetBehaviourInfo(i).IsInherited)
                 {
                     count++;
                 }
@@ -154,5 +131,6 @@ namespace Rogue.Coe.Serialization
 
             return count;
         }
+        */
     }
 }

@@ -75,6 +75,10 @@ namespace Rogue.Coe.Serialization
                 return database;
             }
             // Invalid JSON.
+            #if UNITY_2017_1_OR_NEWER
+                UnityEngine.Debug.Log("Unable to read database, invalid JSON");
+            #endif
+
             return null;
         }
 

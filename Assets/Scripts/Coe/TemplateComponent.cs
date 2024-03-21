@@ -10,33 +10,6 @@ namespace Rogue.Coe
     public class TemplateComponent : TemplateMember
     {
         /// <summary>
-        /// Flag indicating whether the component was inherited from other template or not.
-        /// </summary>
-        //[JsonIgnore]
-        //public bool Inherited { get; set; } = false;
-
-        /// <summary>
-        /// Flag indicating whether the component is a fly weight or not.
-        /// </summary>
-        //[JsonProperty(PropertyName = "flyweight")]
-        //public bool Flyweight { get; set; } = false;
-
-        /// <summary>
-        /// Flag indicating whether the component overwrites the values of a component in a base template or not.
-        /// </summary>
-        //[JsonProperty(PropertyName = "override")]
-        //public TemplateOverride Override { get; set; } = TemplateOverride.None;
-
-        /// <summary>
-        /// Index of the component of the same type to overwrite or less than zero to overwrite the first one.
-        /// </summary>
-        //[JsonProperty(PropertyName = "overwriteIndex")]
-        //public int OverrideIndex{ get; set; } = -1;
-
-        //[JsonIgnore]
-        //public int OverrideState { get; set; } = 0;
-
-        /// <summary>
         /// Component.
         /// </summary>
         [JsonProperty(Order = 0)]
@@ -48,93 +21,72 @@ namespace Rogue.Coe
         [JsonIgnore]
         public List<string> changes = null;
 
-        //public bool IsOverride => Override != TemplateOverride.None;
-
-        //public bool IsReplace => Override == TemplateOverride.Replace;
-
-        //public bool IsRemove => Override == TemplateOverride.Remove;
-
-        public TemplateComponent() {}
-
-        public TemplateComponent(IGameComponent component)
-        {
-            this.component = component;
-        }
-
-        public TemplateComponent(IGameComponent component, TemplateFlag flags) : base(flags) 
-        {
-            this.component = component;
-        }
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        protected TemplateComponent() {}
 
         /// <summary>
-        /// Creates a new template component.
+        /// Creates a template component for a component.
         /// </summary>
         /// <param name="component">Component.</param>
+        /// <param name="inherited">Flag indicating whether the component was inherited or not.</param>
         /// <returns>Template component.</returns>
-        public static TemplateComponent CreateNew(IGameComponent component) => new (component)
+        public static TemplateComponent Create(IGameComponent component, bool inherited)
         {
-            /*
-            component     = component,
-            Inherited     = false,
-            Flyweight     = false,
-            Override      = TemplateOverride.None,
-            OverrideIndex = -1
-            */
-        };
+            return new()
+            {
+                Flags     = inherited ? TemplateFlag.Inherited : TemplateFlag.None,
+                component = component,
+            };
+        }
 
         /// <summary>
-        /// Creates an inherited template component.
+        /// Creates a template component for a flyweight component.
         /// </summary>
         /// <param name="component">Component.</param>
+        /// <param name="inherited">Flag indicating whether the component was inherited or not.</param>
         /// <returns>Template component.</returns>
-        public static TemplateComponent CreateInherited(IGameComponent component) => new (component, TemplateFlag.Inherited)
+        public static TemplateComponent CreateFlyweight(IGameComponent component, bool inherited)
         {
-            /*
-            component     = component,
-            Inherited     = true,
-            Flyweight     = false,
-            Override      = TemplateOverride.None,
-            OverrideIndex = -1
-            */
-        };
-
-        public static TemplateComponent CreateFlyweight(IGameComponent component, bool inherited) => new (component, TemplateFlag.Flyweight | (inherited ? TemplateFlag.Inherited : TemplateFlag.None))
-        {
-            /*
-            component     = component,
-            Inherited     = inherited,
-            Flyweight     = true,
-            Override      = TemplateOverride.None,
-            OverrideIndex = -1,
-            */
-        };
+            return new ()
+            {
+                Flags     = TemplateFlag.Flyweight | (inherited ? TemplateFlag.Inherited : TemplateFlag.None),
+                component = component,
+            };
+        }
 
         /// <summary>
-        /// Creates an overwrite template component.
+        /// Clones the template component as an inherited template component.
         /// </summary>
-        /// <param name="component">Componet.</param>
-        /// <param name="index">Index of the component of the same type to overwrite or less than zero to
-        /// overwrite the first one.</param>
-        /// <returns>Template component.</returns>
-        /*
-        public static TemplateComponent CreateOverwrite(IGameComponent component, int index)  => new ()
+        /// <returns>Clone.</returns>
+        public TemplateComponent CloneAsInherited()
         {
-            component     = component,
-            Inherited     = false,
-            Flyweight     = false,
-            Override      = TemplateOverride.Replace,
-            OverrideIndex = index
-        };
-        */
+            return new()
+            {
+                Flags         = TemplateFlag.Inherited | (IsFlyweight ? TemplateFlag.Flyweight : TemplateFlag.None),
+                OverrideIndex = OverrideIndex,
+                component     = component.Clone()
+            };
+        }
 
-        #region @@@ SERIALIZATION @@@
+        /// <summary>
+        /// Records a field or property of the component that has been modified.
+        /// </summary>
+        /// <param name="name">Name of the field or property.</param>
+        public void RecordChange(string name)
+        {
+            if (changes == null)
+            {
+                changes = new ();
+            }
 
-        //public bool ShouldSerializeFlyweight() => Flyweight;
+            changes.Add(name);
+        }
 
-        //public bool ShouldSerializeOverwrite() => Override != TemplateOverride.None;
-
-        //public bool ShouldSerializeOverwriteIndex() => Override != TemplateOverride.None && OverrideIndex >= 0;
-
-        #endregion
+        /// <summary>
+        /// Clears the list of changes.
+        /// </summary>
+        public void ClearChanges() => changes.Clear();
     }
 }

@@ -4,7 +4,7 @@
         "components": [
             ["name", {"name": "crop", "description": "a wonderful crop full of plants"}],
             ["crop"],
-            ["view", {"type": "ViewCrop", "mapOnly": false}]
+            ["view", {"type": "viewCrop", "mapOnly": false}]
         ],
         "behaviours": [
             "cultivable"

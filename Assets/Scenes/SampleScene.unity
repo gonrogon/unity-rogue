@@ -6244,8 +6244,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_templatesToLoad:
-  - {fileID: 6212302990453474533, guid: af6d4014df0b96c49831a28bf2828abb, type: 3}
-  - {fileID: 6212302990453474533, guid: bfdbe8a156c286249879ed81357b1e2b, type: 3}
+  - {fileID: 498403593502146040, guid: ba9f94b730a59c74cb0d52ce20bafcd9, type: 3}
+  - {fileID: 498403593502146040, guid: 2828eff4bf9e55a40b782fac1026f20e, type: 3}
   - {fileID: 498403593502146040, guid: 7cd7c57351deb8d4d8b73bba869e72e8, type: 3}
   - {fileID: 498403593502146040, guid: b4fdfb34f5c07d149a99b400d6750da4, type: 3}
   - {fileID: 498403593502146040, guid: 0d967ee74a441b246a0f7ca1d1f13d3b, type: 3}

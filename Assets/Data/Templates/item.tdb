@@ -6,7 +6,7 @@
             ["item"],
             ["name", {"name": "generic item", "description": "a generic item with no description" }],
             ["location"],
-            ["view", {"type": "ViewSimple", "name": "Default" }]
+            ["view", {"type": "viewSimple", "name": "default" }]
         ],
         "behaviours": [
 			"name", "value", "pickable", "droppable"

@@ -1,15 +1,43 @@
 ﻿using System;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Rogue.Coe
 {
     public static class GameComponentUtil
     {
         /// <summary>
+        /// Defines a delegate to handle serialization callback events.
+        /// </summary>
+        /// <param name="obj">Object that raised the callback event.</param>
+        /// <param name="context">Streaming context.</param>
+        public delegate void SerializationCallback(object obj, StreamingContext context);
+
+        /// <summary>
         /// Cache of components.
         /// </summary>
         public static Dictionary<string, Type> mCache = new ();
+
+        /// <summary>
+        /// Cache with the callbacks.
+        /// 
+        /// Note that the template system only uses the "OnDeserialized" callbacks to populate the components.
+        /// </summary>
+        public static Dictionary<string, List<SerializationCallback>> mCallbacks;
+
+        public static void SetValues<T>(T source, T target, IEnumerable<string> names) where T : IGameComponent
+        {
+            if (names == null)
+            {
+                return;
+            }
+
+            foreach (string name in names)
+            {
+                SetValue(source, target, name);
+            }
+        }
 
         /// <summary>
         /// Sets the value of a public field or property from a source component to target component.
@@ -18,9 +46,9 @@ namespace Rogue.Coe
         /// <param name="name">Name of the field or property.</param>
         /// <param name="source">Source component.</param>
         /// <param name="target">Target component.</param>
-        public static void SetValue<T>(string name, T source, T target) where T : IGameComponent
+        public static void SetValue<T>(T source, T target, string name) where T : IGameComponent
         {
-            MemberInfo[] found = typeof(T).GetMember(name, BindingFlags.Public);
+            MemberInfo[] found = source.GetType().GetMember(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             if (found.Length <= 0)
             {
                 return;
@@ -33,6 +61,31 @@ namespace Rogue.Coe
                     case MemberTypes.Field:    { ((FieldInfo)info)   .SetValue(target, ((FieldInfo)info)   .GetValue(source)); } return;
                     case MemberTypes.Property: { ((PropertyInfo)info).SetValue(target, ((PropertyInfo)info).GetValue(source)); } return;
                 }
+            }
+        }
+
+        public static void InvokeDeserialized(IGameComponent target)
+        {
+            MethodInfo[] found = target.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+            foreach (MethodInfo method in found)
+            {
+                if (method.ContainsGenericParameters)
+                {
+                    continue;
+                }
+
+                if (method.IsDefined(typeof(OnDeserializedAttribute), false) == false)
+                {
+                    continue;
+                }
+
+                if (method.ReturnType != typeof(void))
+                {
+                    continue;
+                }
+
+                method.Invoke(target, new object[] { null });
             }
         }
 

@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 using Rogue.Core;
 using Rogue.Core.Collections;
-using Assets.Scripts.Coe;
 
 namespace Rogue.Coe
 {
@@ -69,6 +67,11 @@ namespace Rogue.Coe
         private readonly TemplateDatabase m_templates = new ();
 
         /// <summary>
+        /// Dictionary with the flyweights of each template.
+        /// </summary>
+        private readonly Dictionary<string, GameComponentList> m_flyweights = new ();
+
+        /// <summary>
         /// Dictionary of ident/entity pairs. 
         /// </summary>
         private readonly IdentMap<Item> m_entities = new ();
@@ -119,14 +122,65 @@ namespace Rogue.Coe
         /// <param name="template">Template to add.</param>
         public bool AddTemplate(Template template)
         {
-            if (!template.Compile(m_templates))
+            if (m_templates.TryGet(template.Name, out _))
             {
-                Debug.LogError($"Unable to compile template \"{template.Name}\"");
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.LogError($"Unable to add template \"{template.Name}\", template already exist");
+                #endif
+
                 return false;
             }
 
+            if (!template.CompileNew(m_templates))
+            {
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.LogError($"Unable to add template \"{template.Name}\", compilation failure");
+                #endif
+
+                return false;
+            }
+
+            CreateTemplateFlyweights(template);
             m_templates.Add(template);
+
             return true;
+        }
+
+        internal GameComponentList GetTemplateFlyweights(string name)
+        {
+            if (m_flyweights.TryGetValue(name, out GameComponentList list))
+            {
+                return list;
+            }
+
+            #if DEBUG && UNITY_2017_1_OR_NEWER
+                if (!m_templates.TryGet(name, out _))
+                {
+                    UnityEngine.Debug.Log($"Unable to get flyweights for template \"{name}\", template not found");
+                }
+            #endif
+            // Template has no flyweights or it does not exist.
+            return null;
+        }
+
+        /// <summary>
+        /// Creates the flyweights components for a template.
+        /// </summary>
+        /// <param name="template">Template.</param>
+        private void CreateTemplateFlyweights(Template template)
+        {
+            if (template.FlyweightCount < 0)
+            {
+                return;
+            }
+
+            var list = new GameComponentList();
+            for (int i = 0; i < template.FlyweightCount; i++)
+            {
+                list.Add(template.CloneFlyweight(i));
+            }
+
+            m_flyweights[template.Name] = list;
         }
 
         /// <summary>
@@ -134,22 +188,31 @@ namespace Rogue.Coe
         /// </summary>
         /// <param name="file">File to load.</param>
         /// <returns>True on success; otherwise, false.</returns>
-        /*
         public bool LoadTemplates(string file)
         {   
-            if (!m_templates.Load(file))
+            if (!m_templates.LoadFromFile(file))
             {
                 return false;
             }
 
-            m_templates.Compile();
+            m_templates.Compile(CreateTemplateFlyweights);
             return true;
         }
-        */
 
+        /// <summary>
+        /// Loads templates from text.
+        /// </summary>
+        /// <param name="text">Text to load.</param>
+        /// <returns>True on success; otherwise, false.</returns>
         public bool LoadTemplatesFromText(string text)
         {
-            return m_templates.LoadFromText(text);
+            if (!m_templates.LoadFromText(text))
+            {
+                return false;
+            }
+
+            m_templates.Compile(CreateTemplateFlyweights); 
+            return true;
         }
 
         #endregion
@@ -172,16 +235,40 @@ namespace Rogue.Coe
         /// <returns>Reference to the entity on success; otherwise, null.</returns>
         public GameEntity Create(string template)
         {
-            Template tpl = FindTemplate(template);
-            if (tpl == null)
+            if (!m_templates.TryGet(template, out Template tpl))
             {
-                Debug.LogError($"Template \"{template}\" not found");
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.LogError($"Template \"{template}\" not found");
+                #endif
+
                 return null;
             }
 
             return Insert(new GameEntity(this, tpl));
         }
+        /*
+        private GameComponentList GetTemplateFlyweights(string template)
+        {
+            Template tpl = FindTemplate(template);
+            if (tpl.FlyweightCount <= 0)
+            {
+                return null;
+            }
 
+            if (m_flyweights.TryGetValue(template, out GameComponentList flyweights))
+            {
+                return flyweights;
+            }
+
+            flyweights = new GameComponentList();
+            for (int i = 0; i < tpl.FlyweightCount; ++i)
+            {
+                flyweights.Add(tpl.CloneFlyweight(i));
+            }
+
+            return flyweights;
+        }
+        */
         /// <summary>
         /// Starts an entity which is pending of configuration.
         /// </summary>
@@ -190,19 +277,28 @@ namespace Rogue.Coe
         {
             if (entity.World != this)
             {
-                Debug.LogError($"Unable to start entity \"{entity.Id}\", entity does not belong to the world");
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.LogError($"Unable to start entity \"{entity.Id}\", entity does not belong to the world");
+                #endif
+
                 return;
             }
 
             if (!m_entities.TryFind(entity.Id, out Item item))
             {
-                Debug.LogError($"Entity \"{entity.Id}\" not found");
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.LogError($"Entity \"{entity.Id}\" not found");
+                #endif
+
                 return;
             }
 
             if (item.state != Item.State.Wait)
             {
-                Debug.LogError($"Entity \"{entity.Id}\" is not waiting for configuration");
+                #if UNITY_2017_1_OR_NEWER
+                    UnityEngine.Debug.LogError($"Entity \"{entity.Id}\" is not waiting for configuration");
+                #endif
+
                 return;
             }
 
@@ -215,28 +311,6 @@ namespace Rogue.Coe
                 item.state = Item.State.Finished;
             }
         }
-
-        /*
-        public GameEntity Add(GameEntity entity)
-        {
-            if (entity.World != null)
-            {
-                Debug.LogError($"Entity \"{entity.Id}\" was already added to a world");
-                return null;
-            }
-
-            //entity.Setup(this, )
-
-            Ident ident = m_entities.Add(new Item(entity));
-
-            return entity;
-
-            //m_created.Add(ident);
-            //entity.Setup(this, ident);
-
-            //return ident;
-        }
-        */
 
         /// <summary>
         /// Inserts a new entity.
@@ -313,7 +387,7 @@ namespace Rogue.Coe
         /// <param name="time">Elapsed time, in seconds.</param>
         public void Step(float time)
         {
-            Debug.Assert(m_dead.Count == 0);
+            System.Diagnostics.Debug.Assert(m_dead.Count == 0, "Number of dead entities is not zero at the beginning of the step");
             
             foreach (Ident id in m_created)
             {

@@ -4,7 +4,7 @@
         "components": [
             ["name", {"name": "scaffold", "description": "the scaffolds of aconstruction"}],
             ["location"],
-            ["view", {"type": "ViewSimple", "sprite": "scaffold"}]
+            ["view", {"type": "viewSimple", "sprite": "scaffold"}]
         ]
     },
     {

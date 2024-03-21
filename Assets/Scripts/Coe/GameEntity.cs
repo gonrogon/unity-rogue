@@ -50,20 +50,36 @@ namespace Rogue.Coe
         private readonly GameBehaviourList m_behaviours = new ();
 
         /// <summary>
+        /// List of flyweights.
+        /// </summary>
+        private readonly GameComponentList m_flyweights;
+
+        /// <summary>
         /// View.
         /// </summary>
         private IGameView m_view = null;
 
         #region @@@ CREATION @@@
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="world">World.</param>
         internal GameEntity(GameWorld world)
         {
             World = world;
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="world">World.</param>
+        /// <param name="template">Template.</param>
         internal GameEntity(GameWorld world, Template template)
         {
-            World = world;
+            World        = world;
+            Template     = template;
+            m_flyweights = world.GetTemplateFlyweights(template.Name);
 
             Populate(template);
         }
@@ -152,6 +168,20 @@ namespace Rogue.Coe
             return message;
         }
 
+        #region @@@ COMMON INTERFACE FOR COMPONENTS AND FLYWEIGHTS @@@
+
+        public T FindFirstAny<T>() where T : IGameComponent
+        {
+            T c;
+
+            if ((c = FindFirstComponent<T>()) != null) { return c; }
+            if ((c = FindFirstFlyweight<T>()) != null) { return c; }
+
+            return c;
+        }
+
+        #endregion
+
         #region @@@ COMPONENTS @@@
 
         public bool ContainsComponent<T>() where T : IGameComponent => m_components.Contains<T>();
@@ -191,34 +221,11 @@ namespace Rogue.Coe
 
         #region @@@ FLYWEIGHTS @@@
 
-        public bool ContainsFlyweight<T>() where T : IGameComponent
-        {
-            return Template == null ? false : Template.FindFlyweightIndex<T>(0) >= 0;
-        }
+        public bool ContainsFlyweight<T>() where T : IGameComponent => m_flyweights != null && m_flyweights.Contains<T>();
 
-        public T FindFlyweight<T>(int nth) where T : IGameComponent
-        {
-            return Template == null ? default : Template.FindFlyweight<T>(nth);
-        }
+        public T FindFlyweight<T>(int nth) where T : IGameComponent => m_flyweights != null ? m_flyweights.Find<T>(nth) : default;
 
-        public T FindFirstFlyweight<T>() where T : IGameComponent
-        {
-            return Template == null ? default : Template.FindFirstFlyweight<T>();
-        }
-
-        #endregion
-
-        #region @@@ COMMON INTERFACE FOR COMPONENTS AND FLYWEIGHTS @@@
-
-        public T FindFirstAny<T>() where T : IGameComponent
-        {
-            T c;
-
-            if ((c = FindFirstComponent<T>()) != null) { return c; }
-            if ((c = FindFirstFlyweight<T>()) != null) { return c; }
-
-            return c;
-        }
+        public T FindFirstFlyweight<T>() where T : IGameComponent => m_flyweights != null ? m_flyweights.FindFirst<T>() : default;
 
         #endregion
 
@@ -272,9 +279,7 @@ namespace Rogue.Coe
 
         #endregion
 
-        // ----
-        // View
-        // ----
+        #region @@@ VIEW @@@
 
         public bool ContainsView() => m_view != null;
 
@@ -312,34 +317,13 @@ namespace Rogue.Coe
             m_view = null;
         }
 
-        // ---------
-        // Templates
-        // ---------
+        #endregion
 
-        public void Populate(Template template)
+        private void Populate(Template template)
         {
-            Template = template;
-
-            for (int i = 0; i < template.ComponentCount; i++)
-            {
-                IGameComponent componet = template.CloneComponent(i);
-                if (componet == null)
-                {
-                    continue;
-                }
-
-                AddComponent(componet);
-            }
-
-            for (int i = 0; i < template.BehaviourCount; i++)
-            {
-                AddBehaviour(template.CloneBehaviour(i));
-            }
-
-            if (template.GetViewInfo() != null)
-            {
-                SetView(template.CloneView());
-            }
+            // Components.
+            for (int i = 0; i < template.ComponentCount; i++) { AddComponent(template.CloneComponent(i)); }
+            for (int i = 0; i < template.BehaviourCount; i++) { AddBehaviour(template.CloneBehaviour(i)); }
         }
     }
 }
