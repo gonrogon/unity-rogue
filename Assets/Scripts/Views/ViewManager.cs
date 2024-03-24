@@ -50,6 +50,8 @@ namespace Rogue.Views
 
         #region @@@ LISTENERS @@@
 
+        public void OnTemplateLoaded(GameWorld world, Template template) {}
+
         public void OnEntityAdded(GameWorld world, GameEntity entity) => SetView(entity);
 
         public void OnEntityRemoved(GameWorld world, GameEntity entity) => RemoveView(entity);

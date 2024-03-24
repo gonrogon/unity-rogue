@@ -3,6 +3,7 @@ using Rogue.Coe;
 using Rogue.Map;
 using GG.Mathe;
 using System;
+using System.Collections.Generic;
 
 namespace Rogue.Game
 {
@@ -323,6 +324,26 @@ namespace Rogue.Game
                 if (MapIsPassable(testCoord, who))
                 {
                     result = testCoord;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool MapGetFirstPlayer(Vec2i coord, out Ident entity)
+        {
+            return Context.Map.TryFindFirst(coord, eid => IsPlayer(eid), out entity);
+        }
+
+        public static bool MapGetFirstPlayer(IEnumerable<Vec2i> coords, out Ident entity)
+        {
+            entity = Ident.Zero;
+
+            foreach (Vec2i coord in coords)
+            {
+                if (Context.Map.TryFindFirst(coord, eid => IsPlayer(eid), out entity))
+                {
                     return true;
                 }
             }

@@ -4,7 +4,7 @@ namespace Rogue.Game.Betree
 {
     public class NodeActionBase : NodeAction
     {
-        public AgentBetree.State AgentState => Blackboard.Get<AgentBetree.State>("state");
+        public AgentBase.State AgentState => Blackboard.Get<AgentBase.State>("state");
 
         public void AddActionCost(int cost)
         {

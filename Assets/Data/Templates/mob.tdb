@@ -1,16 +1,37 @@
 [
-     {
-        "name": "farmer",
+    {
+        "name": "mob",
         "components": [
-            ["name", {"name": "farmer", "description": "a normal farmer"}],
+            ["name", {"name": "mob", "description": "generic mob"}],
             ["location"],
             ["life", {"max": 100, "initial": 100, "current": 100}],
-            ["inventory"],
             ["body", {"template": "mob"}],
-            ["view", {"type": "viewMob", "sprite": "enemy"}]
+            ["view", {"type": "viewMob", "sprite": "enemy"}],
+            ["tag", {"tags": "none"}]
         ],
         "behaviours": [
-            "name", "life", "move", "builder", "farmer", "equip"
+            "name", "life", "move", "equip"
         ]
-     }
+    },
+    {
+        "name": "farmer",
+        "extends": "mob",
+        "components": [
+            ["name", {"name": "farmer", "description": "a normal farmer"}],
+            ["tag", {"tags": "player"}],
+            ["inventory"]
+        ],
+        "behaviours": [
+            "builder", "farmer"
+        ]
+    },
+    {
+        "name": "small spider",
+        "extends": "mob",
+        "components": [
+            ["name", {"name": "small spirder", "description": "a small alien spider"}],
+            ["view", {"sprite": "spider"}],
+            ["tag", {"tags": "enemy"}]
+        ]
+    }
 ]

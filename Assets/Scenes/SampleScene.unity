@@ -6251,6 +6251,8 @@ MonoBehaviour:
   - {fileID: 498403593502146040, guid: 0d967ee74a441b246a0f7ca1d1f13d3b, type: 3}
   - {fileID: 498403593502146040, guid: d852ff4623c9d344791a39fbe6ed8021, type: 3}
   - {fileID: 498403593502146040, guid: 6fa05c0b50cc5d646997fb9074f231da, type: 3}
+  - {fileID: 6212302990453474533, guid: 83d8cc5ec506d3048be84ccd0abdd426, type: 3}
+  - {fileID: 6212302990453474533, guid: d2d47a5f06c5e734cba8b817e41723f9, type: 3}
   m_categoriesToLoad:
   - {fileID: 4900000, guid: ee5357c85a090ab439b645195cd39c51, type: 3}
   m_itemTypesToLoad:

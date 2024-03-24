@@ -2,6 +2,8 @@
 {
     public interface IGameWorldListerner
     {
+        void OnTemplateLoaded(GameWorld world, Template template);
+
         void OnEntityAdded(GameWorld world, GameEntity entity);
 
         void OnEntityRemoved(GameWorld world, GameEntity entity);

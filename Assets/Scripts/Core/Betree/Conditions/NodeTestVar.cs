@@ -1,7 +1,9 @@
-﻿using System;
-
-namespace Rogue.Core.Betree
+﻿namespace Rogue.Core.Betree
 {
+    /// <summary>
+    /// Node to check if the value of a variable is equal to a specified one.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class NodeTestVar<T> : NodeCondition
     {
         /// <summary>
@@ -10,15 +12,10 @@ namespace Rogue.Core.Betree
         private readonly string m_name;
 
         /// <summary>
-        /// Value.
+        /// Value to check.
         /// </summary>
         private readonly T m_value;
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="name">Name of the variable to set.</param>
-        /// <param name="value">Comparison value.</param>
         public NodeTestVar(string name, T value)
         {
             m_name  = name;

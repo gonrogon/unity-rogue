@@ -1,5 +1,8 @@
 ﻿namespace Rogue.Core.Betree
 {
+    /// <summary>
+    /// Node to copy the value from a variable in another one.
+    /// </summary>
     public class NodeCopyVar : NodeAction
     {
         /// <summary>
@@ -26,6 +29,7 @@
             }
 
             Blackboard.Set(m_target, value);
+
             return NodeState.Success;
         }
     }

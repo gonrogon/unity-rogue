@@ -6,7 +6,14 @@
 
         public Node Root { get; private set; } = null;
 
+        public Tree() {}
+
         public Tree(Node root)
+        {
+            SetRoot(root);
+        }
+
+        public void SetRoot(Node root)
         {
             Root = root;
             Root.OnAttached(this, null);

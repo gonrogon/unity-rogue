@@ -401,6 +401,8 @@ namespace Rogue.Map
         /// <returns>True if the entity exists; otherwise, false.</returns>
         public bool TryFindFirst(Vec2i coord, System.Func<Ident, bool> pred, out Ident eid)
         {
+
+
             /*
             int bag = GetBag(coord);
                 eid = Ident.Zero;
@@ -422,7 +424,13 @@ namespace Rogue.Map
 
             return false;
             */
-            eid   = Ident.Zero;
+
+            eid = Ident.Zero;
+
+            if (!HasCoord(coord))
+            {
+                return false;
+            }
 
             for (int i = 0; TryGetNth(coord, i, out Ident idOut); i++)
             {

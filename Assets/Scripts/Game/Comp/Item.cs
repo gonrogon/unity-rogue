@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using Rogue.Coe;
-using Newtonsoft.Json;
+﻿using Rogue.Coe;
 
 namespace Rogue.Game.Comp
 {

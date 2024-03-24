@@ -14,9 +14,11 @@ namespace Rogue.Game
 
         #region @@@ WORLD LISTENER @@@
 
+        public void OnTemplateLoaded(GameWorld world, Template template) {}
+
         public void OnEntityAdded(GameWorld world, GameEntity entity) 
         {
-            if (!entity.ContainsComponent<Comp.Body>())
+            if (!entity.ContainsComponent<Comp.Inventory>())
             {
                 return;
             }
@@ -26,7 +28,7 @@ namespace Rogue.Game
 
         public void OnEntityRemoved(GameWorld world, GameEntity entity) 
         {
-            if (!entity.ContainsComponent<Comp.Body>())
+            if (!entity.ContainsComponent<Comp.Inventory>())
             {
                 return;
             }

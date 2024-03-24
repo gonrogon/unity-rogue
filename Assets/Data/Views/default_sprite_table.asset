@@ -25,3 +25,5 @@ MonoBehaviour:
     sprite: {fileID: -1741182059, guid: 3da81a15f8a20fd42be690d8965e4c8f, type: 3}
   - name: bunch
     sprite: {fileID: 937202573, guid: 3da81a15f8a20fd42be690d8965e4c8f, type: 3}
+  - name: spider
+    sprite: {fileID: 902650582, guid: 3da81a15f8a20fd42be690d8965e4c8f, type: 3}

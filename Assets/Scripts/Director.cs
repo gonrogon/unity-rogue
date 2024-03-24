@@ -256,28 +256,35 @@ public class Director : MonoBehaviour
 
         ent = m_world.Create("farmer");
 
-        ent.FindFirstComponent<Game.Comp.Name>().name = "farmer 1";
+        ent.FindFirstAny<Game.Comp.Name>().name = "farmer 1";
         ent.FindFirstComponent<Game.Comp.Location>().position = new Vec2i(8, 4);
         Context.Map.Add(new Vec2i(8, 4), ent.Id);
         m_world.Start(ent);
 
-        m_scheduler.Add(new AgentBetree(ent.Id));
+        //m_scheduler.Add(new Game.Betree.Agents.AgentBetree(ent.Id));
+        m_scheduler.Add(new Game.Betree.Agents.AgentFarmer(ent.Id));
         
         // FARMER 2
         
         ent = m_world.Create("farmer");
 
-        ent.FindFirstComponent<Game.Comp.Name>().name = "farmer 2";
+        ent.FindFirstAny<Game.Comp.Name>().name = "farmer 2";
         ent.FindFirstComponent<Game.Comp.Location>().position = new Vec2i(2, 5);
         Context.Map.Add(new Vec2i(2, 5), ent.Id);
         m_world.Start(ent);
 
-        m_scheduler.Add(new AgentBetree(ent.Id));
+        m_scheduler.Add(new Game.Betree.Agents.AgentFarmer(ent.Id));
         
         // ENEMY
+        
+        ent = m_world.Create("small spider");
+        
+        ent.FindFirstAny<Game.Comp.Name>().name = "enemy spider 1";
+        ent.FindFirstComponent<Game.Comp.Location>().position = new Vec2i(8, 12);
+        Context.Map.Add(new Vec2i(8, 12), ent.Id);
+        m_world.Start(ent);
 
-        //ent = m_world.Create("enemy");
-
+        m_scheduler.Add(new Game.Betree.Agents.AgentSpider(ent.Id));
 
         // DOOR
 
